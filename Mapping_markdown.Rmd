@@ -1,13 +1,12 @@
 ---
 title: "GIS map using tmap"
 author: "Sameer Padhye"
-date: '2018-11-05'
-output:
-  html_document:
-    df_print: paged
+date: "2018-11-05"
+output: github_document
 ---
-#Libraries used
-```{r,echo=T,message=FALSE,warning=FALSE}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 require(tmap)
 require(raster)
 require(ggmap)
