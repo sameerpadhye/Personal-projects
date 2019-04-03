@@ -35,7 +35,7 @@ head(cerio_morphometry,3)
 #1. Normality (Shapiro Wilk test)
 shapiro.test(cerio_morphometry$ratio)
 
-#2. Homogeneity of variances
+#2. Homogeneity of variances (Levene's Test)
 
 leveneTest(ratio ~ site, 
            data=cerio_morphometry)
