@@ -62,5 +62,19 @@ ggboxplot(cerio_morphometry,
     xlab("Sites")+
     ylab("Ratio")
 
+## Another way of inferring statistical significance would be to use permutation ANOVA 
+
+#Library for permutation ANOVA
+library (lmPerm)
+
+#Anova model
+
+cerio_model<-aovp(ratio ~ site,seqs=T,perm="",data=cerio_morphometry)
+
+cerio_model_summary<-summary(cerio_model)
+
+#To export the results
+write.csv(cerio_model$`Error: Within`[[1]],"cerio_model.csv")
+
 ############################END########################################
 
