@@ -1,7 +1,7 @@
 ##Using simple logistic regression to assess the significance of certain envrionmental variables in explaining the occurrence of a zooplankton species
 
 
-#libraries used
+#Libraries used
 library(psych)
 library(QuantPsyc)
 library(tidyverse)
@@ -33,10 +33,12 @@ data_for_analysis<-log_reg_data%>%
                    as.integer)%>%
     dplyr::rename('habitat_type'='type')
 
+#Exploring the modified data
 head(data_for_analysis,3)
+
 #checking for multicollinearity in the environmental descriptors
 
-cor2pcor(cov(data_for_analysis[,c(3:7)]))
+corpcor::cor2pcor(cov(data_for_analysis[,c(3:7)]))
 
 #Since none of the environmental variables are collinear, all of them are used in the regression analysis
 
@@ -71,10 +73,10 @@ logistic_model<-glm(reg.formula,
 #Summary of the model
 summary(logistic_model)
 
-## Obtaining the odds ratios
+## Obtaining the odds ratios of the descriptors
 exp(coef(logistic_model))
 
-#classification of the cases based on the model
+#classification of the cases (here species presence and absence) based on the model
 QuantPsyc::ClassLog(logistic_model,data_for_analysis$sp_occ)
 
 
