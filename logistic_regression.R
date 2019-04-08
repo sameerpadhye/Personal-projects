@@ -7,10 +7,13 @@ library(QuantPsyc)
 library(tidyverse)
 library(magrittr)
 library(car)
-library(corpcor)
+library(ppcor)
+
+#Data file path
+data_file<- paste0(getwd(),"/log_regression_sample_data.csv")
 
 #Importing the data
-log_reg_data<-read.csv(paste0(getwd(),"/log_regression_sample_data.csv"),header=T)
+log_reg_data<-read.csv(data_file,header=T)
 
 #exploring the data (structure)
 str(log_reg_data)
@@ -38,7 +41,10 @@ head(data_for_analysis,3)
 
 #checking for multicollinearity in the environmental descriptors
 
-corpcor::cor2pcor(cov(data_for_analysis[,c(3:7)]))
+collinearity_var<-data_for_analysis%>%
+    dplyr::select(Altitude:Salinity)%>%
+    pcor(.,method = "spearman")%>%
+    .$estimate
 
 #Since none of the environmental variables are collinear, all of them are used in the regression analysis
 
@@ -62,8 +68,9 @@ data_for_analysis%>%
     theme_bw(base_size = 16)
 
 #defining the formula for the regression
-reg.formula<-reformulate(names(data_for_analysis)[c(3:7)], 
-                        names(data_for_analysis[1]))
+
+reg.formula<-reformulate(termlabels = paste(names(data_for_analysis%>%
+                                                      subset(.,select=-c(sp_occ,habitat_type)))), response = 'sp_occ')
 
 #Logistic regression using all environmental descriptors
 logistic_model<-glm(reg.formula,
