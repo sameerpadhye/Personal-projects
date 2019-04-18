@@ -9,10 +9,10 @@
 
 
 raster_data<-list.files(list.files(paste0(getwd())), 
-                         full.names = T)%>%#1
+                         full.names = T)%>% #1
     purrr::map(raster)%>% #2
     purrr::map(.,~raster::extract(.,SpatialPoints_df_object))%>% #3
-    bind_cols(.)%>% #4
+    dplyr::bind_cols(.)%>% #4
     dplyr::rename(name_1=V1, #5
                   name_2=V2,
                   name_3=V3,

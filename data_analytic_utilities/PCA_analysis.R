@@ -48,7 +48,7 @@ str(PCA_data)
 
 # PCA analysis
 pca_analysis<- PCA_data%>%
-    dplyr::select_if(is.numeric)%>%
+    dplyr::select_if(is.numeric)%>% # only numeric data should be selected
     data.frame(.)%>% # converted to dataframe since tibble is returned
     prcomp(.,scale. = T) # scale is TRUE when column descriptors are of different scales (E.g. one column contains pH values while the second contains Temperature)
 
