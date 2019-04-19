@@ -1,5 +1,8 @@
-#Simple and multivariate correlation
+#Correlation analysis
 
+#libraries used
+library(tidyverse)
+library(reshape2)
 
 #Here a sample dataset is used. The numerical data from any dataframe (correlations of which need to be determined) can be substituted as per requirement
 
@@ -49,3 +52,17 @@ mult_correlation$P
 #Heatmap visualization of the correlations
 heatmap(mult_correlation$r)
 
+##Visualization using ggplot. Correlation coefficients are used 
+
+#getting the long format of the data
+data_for_viz<-reshape2::melt(mult_correlation$r)
+
+#plot (Var1 and Var2 are just the column names that reshape assigns. These can be changed if required)
+
+data_for_viz%>%
+    ggplot(aes(x=Var1,
+               y=Var2,
+               fill=value))+
+    geom_tile()+
+    theme(axis.title.x=element_blank(),
+          axis.title.y = element_blank())
