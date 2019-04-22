@@ -1,40 +1,14 @@
 ##PCA analysis for exploring multivariate data and dimensionality reduction
+#It is a technique used to explore associations if/any in the multivariate data. Detailed explaination for it can be found in the book titled , 'Numerical Ecology'by Legendre and Legendre
+
 
 #Libraries used
-library(tmap)
-library(raster)
-library(ggmap)
-library(sp)
-library(rgdal)
-library(rasterVis)
-library(viridisLite)
-library(RColorBrewer)
-library(plotly)
-library(rgeos)
-library(magrittr)
-library(ppcor)
-library(reshape2)
-library(tidyr)
-library(dplyr)
-library(purrr)
-library(pipeR)
-library(ggplot2)
-library(psych)
-library(readxl)
-library(ggpubr)
-library(ggfortify)
-library(vegan)
-library(betapart)
-library(picante)
-library(adespatial)
-library(FD)
-library(ape)
-library(fpc)
-library(tibble)
-library(data.table)
 library(tidyverse)
+library(magrittr)
+library(readxl)
 
-#paste0(getwd(),"/PCA_data_git.xlsx")
+
+#Path for the data file
 data_path<-"C:/Users/samee/Desktop/R data/PCA_data_git.xlsx"
 
 #Importing data for analysis
@@ -55,7 +29,8 @@ pca_analysis<- PCA_data%>%
 #extracting the PCA co-ordinates
 pca_analysis_values<-pca_analysis$x
 
-#extracting PCA vector values of the first two axes
+#extracting PCA vector values of the first two axes (the first two vectors usually explain the maximum variation)
+
 pca_analysis_vector<-pca_analysis$rotation[,c(1,2)]
 
 #plot for PCA
