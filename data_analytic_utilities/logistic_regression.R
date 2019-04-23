@@ -8,7 +8,7 @@ library(tidyverse)
 library(magrittr)
 library(car)
 library(ppcor)
-
+library(caret)
 #Data file path
 data_file<- paste0(getwd(),"/log_regression_sample_data.csv")
 
@@ -85,5 +85,9 @@ exp(coef(logistic_model))
 
 #classification of the cases (here species presence and absence) based on the model
 QuantPsyc::ClassLog(logistic_model,data_for_analysis$sp_occ)
+
+#obtaining a list of most important descriptors (sequentially) using the 'varImp' function in 'caret'package
+
+caret::varImp(logistic_model)
 
 
