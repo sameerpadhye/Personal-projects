@@ -27,6 +27,9 @@ The shapefiles should be imported using the *readOGR* function from the *sp* pac
 india_state_map<-readOGR('C:/Data/GIS_layers/IND_adm/IND_adm1.shp')
 proj4string(india_state_map)<- CRS("+proj=longlat +datum=WGS84")
 
+#Alternatively, we can procure the necessary outline maps by getData function from raster package(level =1 provides the state boundaries)
+India_state_map2<-raster::getData(name='GADM',country='IND',level=1)
+
 # Western Ghats shapefile
 Western_Ghats<-readOGR("C:/Data/GIS_layers/WG new outline shapefiles/Western GHats outline.shp")
 proj4string(Western_Ghats)<- CRS("+proj=longlat +datum=WGS84")
@@ -52,12 +55,17 @@ After exploring the object, the specific polygon file to be mapped can be extrac
 ```{r,echo=T}
 
 #Maharashtra state polygon
-is_mh_state <- india_state_map$NAME_1== "Maharashtra"
+is_mh_state <- india_state_map@data$NAME_1== "Maharashtra"
 maharashtra_state<-india_state_map[is_mh_state,]
 
 #Goa state polygon
-is_goa_state <- india_state_map$NAME_1== "Goa"
+is_goa_state <- india_state_map@data$NAME_1== "Goa"
 goa_state<-india_state_map[is_goa_state,]
+
+#Alternatively, we can obtain spatial polygons of the states by using subset function from raster package
+
+goa_mh_combo_shp<-raster::subset(india_state_map,
+                             NAME_1=='Maharashtra'|NAME_1=="Goa")
 
 ```
 
