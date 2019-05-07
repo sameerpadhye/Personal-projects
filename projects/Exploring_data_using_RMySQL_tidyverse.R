@@ -111,5 +111,5 @@ country_data%>%
     facet_wrap(~Continent,
                scales = 'free')
 
-# more to come..
+# More data visualizations will be added subsequently..
 
