@@ -111,5 +111,66 @@ country_data%>%
     facet_wrap(~Continent,
                scales = 'free')
 
-# More data visualizations will be added subsequently..
+
+# Adding GIS information (by country) to the world data using 'geocode' from ggmap
+
+library(ggmap)
+
+GIS_countries<-as.data.frame(ggmap::geocode(as.character(unique(country_data$Name)),source = 'dsk'))%>%
+    mutate(location=unique(country_data$Name))%>%
+    drop_na(.) # Here points with NA's is omitted
+
+#Combining the GIS and the world dataset
+
+all_country_data<-merge(country_data,
+                        GIS_countries,
+                        by.x='Name',
+                        by.y='location')
+
+
+#converting the  GIS data into a spatial object using sp package
+
+country_points<-SpatialPointsDataFrame(coords = all_country_data[,c("lon","lat")],
+                                       data = all_country_data,
+                                       proj4string = CRS("+proj=longlat +datum=WGS84"))
+
+
+#Obtaining world shapefile
+
+world_shape<-readOGR("C:/Users/samee/Downloads/HWSD_RASTER/world_shapefile/ne_50m_admin_0_countries.shp")
+
+proj4string(world_shape)<- CRS("+proj=longlat +datum=WGS84")
+
+
+# mapping the points using tmap
+
+tm_shape(world_shape)+
+    tm_borders()+
+    tm_fill(col='grey',
+            alpha = 0.6)+
+    tm_shape(country_points)+
+    tm_dots(size=0.3, 
+            col="red", 
+            border.col="black")+
+    tm_grid(n.x=4,
+            n.y=4,
+            lwd=0.4,
+            alpha = 0.6,
+            col='grey60',
+            labels.size = 0.8)
+
+#for switching between static and interactive map
+ttm()
+
+
+# Next, will be merging country data to the world shapefile using the 'merge' function from sp package
+
+world_new_shpfile <- sp::merge(world_shape, 
+                               all_country_data%>% # required data selected
+                                   dplyr::select(Code:GNP,
+                                                 lon,
+                                                 lat), 
+                               by.x="NAME",
+                               by.y="Code")
+
 
