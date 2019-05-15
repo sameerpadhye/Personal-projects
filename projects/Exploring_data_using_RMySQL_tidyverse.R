@@ -111,6 +111,24 @@ country_data%>%
     facet_wrap(~Continent,
                scales = 'free')
 
+#4. Categorizing and visualizing the LifeExpectancy  data into lower and higher than avg LifeExpectancy respectively using case_when from dplyr
+
+country_data%>%
+    mutate(LifeExp_cat=case_when(LifeExpectancy<=mean(all_country_data$LifeExpectancy,na.rm=T)~'Lower than average',
+                                 LifeExpectancy>=mean(all_country_data$LifeExpectancy,na.rm=T)~'Higher than average',))%>%
+    filter(!is.na(LifeExp_cat))%>%
+    ggplot(aes(LifeExp_cat))+
+    geom_bar(fill='forestgreen')+
+    theme_bw(base_size = 16)+ 
+    ylab('Number of countries')+
+    xlab('Life Expectancy categories')+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())+
+    facet_wrap(~Continent)
+
+
 
 # Adding GIS information (by country) to the world data using 'geocode' from ggmap
 
