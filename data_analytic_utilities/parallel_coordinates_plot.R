@@ -52,3 +52,20 @@ parallel_plot<-GGally::ggparcoord(data_for_analysis,
 ggplotly(parallel_plot)
 
 #3b. Plotting by plotly (WIP)
+
+data_for_analysis %>%
+    plot_ly(type = 'parcoords',
+            line = list(color = ~Factor_level1),
+            dimensions = list(
+                list(range = c(1,50),
+                     label = 'Trait_1', values = ~Trait_1),
+                list(range = c(1,30),
+                     label = 'Trait_2', values = ~Trait_2),
+                list(range = c(1,20),
+                     label = 'Trait_3', values = ~Trait_3),
+                list(range = c(1,20),
+                     label = 'Trait_4', values = ~Trait_4),
+                list(range = c(1,20),
+                     label = 'Trait_5', values = ~Trait_5)
+            )
+    )
