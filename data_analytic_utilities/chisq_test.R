@@ -3,7 +3,7 @@
 
 #data file path.
 
-data_file_path<-paste0(getwd(),'/data_analysis.csv')
+paste0(getwd(),'/data_analysis.csv')
 
 #Importing the data. 
 
@@ -40,4 +40,12 @@ chisq_test$p.value
 
 chisq_test$statistic
 
+
+#Testing the strength of association using Cramer's V and Phi Coefficient (High values suggests strong association)
+
+if(!require(DescTools))install.packages('DescTools')
+
+DescTools::Phi(table_data)
+
+DescTools::CramerV(table_data)
 
