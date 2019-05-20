@@ -129,6 +129,76 @@ country_data%>%
     facet_wrap(~Continent)
 
 
+#5.Visualizing the number of countries categorized based on the SurfaceArea using plotly
+
+country_data%>%
+    mutate(SurfaceArea_cat=case_when(SurfaceArea<=mean(all_country_data$SurfaceArea,na.rm=T)~'Smaller than average',
+                                     SurfaceArea>=mean(all_country_data$SurfaceArea,na.rm=T)~'Higher than average',))%>%
+    filter(!is.na(SurfaceArea_cat))%>%
+    group_by(SurfaceArea_cat)%>%
+    tally(.)%>%
+    plot_ly(x = ~SurfaceArea_cat,y=~n,type = "bar")%>%
+    layout(title = 'Surface_Area categories',
+           xaxis = list(title = "Surface area categories"),
+           yaxis = list(title = "Country No."))
+
+
+#6.Population vs GNP scatterplot of the 10 most populous countries using plotly
+
+library(plotly)
+
+country_data%>%
+    dplyr::select(Name,Population,GNP)%>%
+    filter(Population>mean(Population))%>%
+    arrange(desc(Population))%>%
+    slice(1:10)%>%
+    plot_ly(x=~Population, 
+            y=~GNP, 
+            mode="markers" , 
+            marker=list(color="blue" , 
+                        size=20 , 
+                        opacity=0.6,
+                        line = list(color = 'black',
+                                    width = 1.5)), 
+            text = ~Name, 
+            textposition = 'middle right',
+            textfont = list(color = 'grey80', 
+                            size = 12))%>%
+    layout(title = 'Population vs. GNP',
+           xaxis = list(title = "Population (in billion)"),
+           yaxis = list(title = "GNP"))
+
+
+#7. Visualizing the top 10 largest countries by SurfaceArea by a Lollipop plot
+
+data_for_plot<-country_data%>%
+    dplyr::select(Name,Population,SurfaceArea)%>%
+    arrange(desc(SurfaceArea))%>%
+    slice(1:10)
+
+#Re-ordering the countries based on size
+
+data_for_plot$Name<-fct_reorder(data_for_plot$Name, 
+                                -data_for_plot$SurfaceArea) 
+
+# plot for data visualization
+
+data_for_plot%>%
+    ggplot(aes(x=Name,
+               y=SurfaceArea))+
+    geom_segment(aes(x=Name, 
+                     xend=Name, 
+                     y=0, 
+                     yend=SurfaceArea),
+                 color='grey50',
+                 size=1.5)+
+    geom_point(color='grey50',
+               size=5)+
+    theme_classic(base_size = 14)+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1))
+
+
 
 # Adding GIS information (by country) to the world data using 'geocode' from ggmap
 
