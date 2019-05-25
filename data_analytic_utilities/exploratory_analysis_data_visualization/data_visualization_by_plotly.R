@@ -136,4 +136,38 @@ data_for_viz%>%
            yaxis = list(title = "variable 2"))
 
 
+#Line chart
+
+#a. Simple line chart
+
+data_for_viz%>%
+    plot_ly(x = ~var_1, 
+            y = ~var_4, 
+            type = 'scatter',
+            mode = 'lines')%>%
+    layout(title = 'Line plot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 4"))
+
+#b. Line chart of different dependent variables (please note that the Y axis should have the same units)
+
+data_for_viz%>%
+    plot_ly(x = ~var_1,
+            y=~var_2,
+            name = 'variable 2', 
+            type = 'scatter', 
+            mode = 'lines') %>%
+    add_trace(y = ~var_3, 
+              name = 'variable 3',
+              mode = 'lines') %>%
+    add_trace(y = ~var_4, 
+              name = 'variable 4', 
+              mode = 'lines+markers') %>%
+    layout(title = 'Line plots of 3 variables',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "values"))
+
 #The plots can be modified much more based on the requirement
+
+#Pie chart will be added soon
+
