@@ -199,6 +199,24 @@ data_for_plot%>%
                                      hjust = 1))
 
 
+#8. Viewing the top 20 countries based on their GNP also looking at their Population and SurfaceArea by a 3D scatterplot
+
+country_data%>%
+    dplyr::select(Name,
+                  Population,
+                  SurfaceArea,
+                  GNP,
+                  Continent)%>%
+    arrange(desc(GNP))%>%
+    slice(1:20)%>%
+    plot_ly(x = ~SurfaceArea, 
+            y = ~Population, 
+            z = ~GNP,
+            color = ~Continent)%>%
+    layout(scene = list(xaxis = list(title = 'SurfaceArea'),
+                        yaxis = list(title = 'Population'),
+                        zaxis = list(title = 'GNP')))
+
 
 # Adding GIS information (by country) to the world data using 'geocode' from ggmap
 
