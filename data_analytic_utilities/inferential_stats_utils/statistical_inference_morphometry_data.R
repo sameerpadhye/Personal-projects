@@ -1,23 +1,26 @@
-##Exploring and testing the differences in morphometric traits of a commonly occurring freshwater zooplankter, Ceriodaphnia cornuta from a few localities in tropical India
+##Exploring and testing the differences in morphometric trait ratio of a commonly occurring freshwater zooplankter, Ceriodaphnia cornuta from a few localities in tropical India
 
 #Libraries used
-library(tidyr)
-library(readr)
-library(dplyr)
-library(ggplot2)
+
+library(tidyverse)
 library(vegan)
 library(psych)
 library(FSA)
 library(ggpubr)
 library(ggfortify)
+library(car)
 
-#loading and editing the data
+#Importing data (the data file is assumed to be in the working directory)
 
-cerio_data<-read.csv(file.choose(),header=T)
+morphometry_file_path<-paste0(getwd(),"/morphometry_data.csv")
+
+morphometry_raw_data<-read.csv(morphometry_file_path)
+
 
 # Selecting and modifying data for analysis
-cerio_morphometry<-
-    dplyr::select(cerio_data,
+
+morphometry_data<-
+    dplyr::select(morphometry_raw_data,
                   site,
                   longitudo_corporis,
                   Altitudo_carapacis)%>%
@@ -27,29 +30,36 @@ cerio_morphometry<-
     mutate(ratio=tot.len/tot.wid)%>%
     dplyr::select(site,ratio)
 
-#Viewing the data
-head(cerio_morphometry,3)
+
+#Exploring the data
+
+head(morphometry_data,5)
+
 
 #Checking the data for normality and variance homogeneity
 
 #1. Normality (Shapiro Wilk test)
-shapiro.test(cerio_morphometry$ratio)
+
+shapiro.test(morphometry_data$ratio)
 
 #2. Homogeneity of variances (Levene's Test)
 
 leveneTest(ratio ~ site, 
-           data=cerio_morphometry)
+           data=morphometry_data)
 
 #Since the data are non normal, Kruskal Wallis test has been used
 
 #Krusal Wallis test for non normal data
-kruskal.test(ratio~site,data=cerio_morphometry)
+
+kruskal.test(ratio~site,data=morphometry_data)
 
 #post hoc test for Kruskal
-dunnTest(ratio ~ site,data=cerio_morphometry,method="bh")
+
+dunnTest(ratio ~ site,data=morphometry_data,method="bh")
 
 # plotting Kruskal test
-ggboxplot(cerio_morphometry, 
+
+ggboxplot(morphometry_data, 
           x = "site", 
           y = "ratio",
           color = "site",
@@ -62,18 +72,39 @@ ggboxplot(cerio_morphometry,
     xlab("Sites")+
     ylab("Ratio")
 
-## Another way of inferring statistical significance would be to use permutation ANOVA 
+#Plotting interactive plot with plotly
+
+library(plotly)
+
+#boxplot with jitter
+
+morphometry_data%>%
+    plot_ly(x = ~site,
+            y=~ratio,
+            type = "box",
+            boxpoints = "all",
+            color = ~site)%>%
+    layout(title = 'Boxplot of ratio values across all the sites',
+           axis = list(title = "Collection sites"),
+           yaxis = list(title = "Value"))
+
+## Using permutation ANOVA for inferring statistical significance
+
 
 #Library for permutation ANOVA
+
 library (lmPerm)
+
 
 #Anova model
 
-cerio_model<-aovp(ratio ~ site,seqs=T,perm="",data=cerio_morphometry)
+cerio_model<-aovp(ratio ~ site,seqs=T,perm="",data=morphometry_data)
 
 cerio_model_summary<-summary(cerio_model)
 
+
 #To export the results
+
 write.csv(cerio_model$`Error: Within`[[1]],"cerio_model.csv")
 
 ############################END########################################
