@@ -84,4 +84,39 @@ stepwise_model <- stepAIC(reg_model, direction="both")
 stepwise_model$anova 
 
 
-#Prediction aspect will be added soon
+#Obtaining the RMSE (root mean square error) of the whole dataset
+
+if(!require(Metrics))install.packages('Metrics') 
+
+data_rmse<-rmse (data_analysis$var_1,data_analysis$predictions)
+
+
+#Plotting predicted vs actual values
+
+data_analysis%>%
+    ggplot(aes(x = predictions, 
+               y = var_1)) + 
+    geom_point(size=3,
+               fill='orange',
+               col='black',
+               pch=21) + 
+    geom_abline(color = "blue")+
+    theme_bw(base_size = 16)+
+    xlab("Predicted values")+
+    ylab("Variable 1")
+
+
+#Obtaining the a. relative error and b. root mean squared relative error (rmsre) of the model
+
+#a.
+data_analysis$relative_error<-(data_analysis$residuals)/(data_analysis$var_1)
+
+#b.
+data_rmsre<-sqrt(mean((data_analysis$relative_error)^2,na.rm = T))
+
+
+#Comparing rmse and rmsre
+
+data_rmse
+
+data_rmsre
