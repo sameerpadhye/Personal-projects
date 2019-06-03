@@ -107,5 +107,60 @@ cerio_model_summary<-summary(cerio_model)
 
 write.csv(cerio_model$`Error: Within`[[1]],"cerio_model.csv")
 
+
+#Exploring the multivariate associations of the traits with sites using Principal Components Analysis
+
+
+# PCA analysis
+
+pca_morpho_analysis<- morphometry_raw_data%>%
+    dplyr::select_if(is.numeric)%>%
+    dplyr::select(-specimen.no)%>%# only numeric data should be selected
+    data.frame(.)%>% # converted to dataframe since tibble is returned
+    prcomp(.,scale. = F) # scale is TRUE when column descriptors are of different scales (E.g. one column contains pH values while the second contains Temperature)
+
+#extracting the PCA co-ordinates
+
+pca_analysis_values<-pca_morpho_analysis$x
+
+#extracting PCA vector values of the first two axes 
+
+pca_analysis_vector<-pca_morpho_analysis$rotation[,c(1,2)]
+
+
+#plot for PCA
+
+#1.autoplot function from the package ggplot2 used to visualize the result s of the PCA analysis
+
+autoplot(pca_morpho_analysis, 
+         scale = 0, 
+         data = morphometry_raw_data, 
+         colour='site',
+         label=T,
+         #label.label = "grid_no",
+         size = 5, 
+         shape='site',
+         frame=T,
+         frame.colour = 'site',
+         loadings = TRUE, 
+         loadings.colour = 'black', 
+         loadings.label = TRUE, 
+         loadings.label.size = 4, 
+         loadings.label.hjust = 0.5, 
+         loadings.label.vjust = 1.2)+
+    # theme
+    theme_bw(base_size = 18)+
+    # scale_color_manual(values=c("orange",'forestgreen',"blue","grey50"))+
+    scale_size_manual(values =2)+
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+## There are mulitple arguments not passed here that can be added as per requirement.    
+
+
+##Scree plot for PCA (used to visualize the contribution of each eigenvector in explaining the variation)
+
+library(factoextra)
+
+fviz_eig(pca_morpho_analysis)
+
 ############################END########################################
 
