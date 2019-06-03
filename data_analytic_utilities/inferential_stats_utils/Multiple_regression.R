@@ -63,6 +63,21 @@ data_analysis$predictions <- predict(reg_model)
 data_analysis$residuals<- residuals(reg_model)
 
 
+#Plotting predicted vs actual values
+
+data_analysis%>%
+    ggplot(aes(x = predictions, 
+               y = var_1)) + 
+    geom_point(size=3,
+               fill='orange',
+               col='black',
+               pch=21) + 
+    geom_abline(color = "blue")+
+    theme_bw(base_size = 16)+
+    xlab("Predicted values")+
+    ylab("Variable 1")
+
+
 # Plot different aspects of the model (using base R) (Here the basic plot code provided. Users can add additional code as per their requirements)
 
 layout(matrix(c(1,2,3,4),2,2)) 
@@ -89,21 +104,6 @@ stepwise_model$anova
 if(!require(Metrics))install.packages('Metrics') 
 
 data_rmse<-rmse (data_analysis$var_1,data_analysis$predictions)
-
-
-#Plotting predicted vs actual values
-
-data_analysis%>%
-    ggplot(aes(x = predictions, 
-               y = var_1)) + 
-    geom_point(size=3,
-               fill='orange',
-               col='black',
-               pch=21) + 
-    geom_abline(color = "blue")+
-    theme_bw(base_size = 16)+
-    xlab("Predicted values")+
-    ylab("Variable 1")
 
 
 #Obtaining the a. relative error and b. root mean squared relative error (rmsre) of the model
