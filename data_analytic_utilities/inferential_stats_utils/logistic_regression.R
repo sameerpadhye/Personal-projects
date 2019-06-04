@@ -1,7 +1,8 @@
-##Using simple logistic regression to assess the significance of certain envrionmental variables in explaining the occurrence of a zooplankton species
+##Using simple logistic regression to assess the significance of certain envrionmental variables in explaining the occurrence of species
 
 
-#Libraries used
+# Libraries used
+
 library(psych)
 library(QuantPsyc)
 library(tidyverse)
@@ -10,85 +11,127 @@ library(car)
 library(ppcor)
 library(caret)
 
-#Data file path
+
+# Data file path (Data file is assumed to be in the working directory)
+
 data_file<- paste0(getwd(),"/log_regression_sample_data.csv")
 
-#Importing the data
-log_reg_data<-read.csv(data_file,header=T)
 
-#exploring the data (structure)
+# Importing the data
+
+log_reg_data<-read_excel(data_file,
+                         sheet=1)
+
+
+# Exploring the data (structure)
+
 str(log_reg_data)
 
 head(log_reg_data,3)
 
-#Re-formatting the data for analysis 
-#1. Making a new column using the species occurrence data (1: present and 0:absent)
+
+# Re-formatting the data for analysis 
 
 data_for_analysis<-log_reg_data%>%
-  dplyr::mutate(sp_occ=ifelse(Ilyocryptus_spinifer=='0',#Species name#
-                                   'absent',
-                                   'present'))%>%
-  dplyr::select(-Ilyocryptus_spinifer)%>%
-  dplyr::select(sp_occ,
-         dplyr::everything())%>%
-  dplyr::mutate_at(vars(matches("sp_")),
+  dplyr::mutate_at(vars(matches("factor")),
                    as.factor)%>%
-  dplyr::mutate_at(vars(matches("Tot.sp.")),
-                   as.integer)%>%
-    dplyr::rename('habitat_type'='type')
+  dplyr::mutate_at(vars(matches("_var_2")),
+                   as.integer)
 
-#Exploring the modified data
+
+# Exploring the modified data
+
 head(data_for_analysis,3)
 
-#checking for multicollinearity in the environmental descriptors
+
+# Checking for multicollinearity in the environmental descriptors
 
 collinearity_var<-data_for_analysis%>%
-    dplyr::select(Altitude:Salinity)%>%
-    pcor(.,method = "spearman")%>%
-    .$estimate
+  dplyr::select(ind_var_1:ind_var_4)%>%
+  pcor(.,method = "spearman")%>%
+  .$estimate
 
-#Since none of the environmental variables are collinear, all of them are used in the regression analysis
+collinearity_var
 
-#plots to check how environmental variables fare in terms of presenceabsence of the species
 
-#reformatting data into a long version
+# Since none of the environmental variables are collinear, all of them are used in the regression analysis
+
+
+# Plots (boxplot) to check how environmental variables fare in terms of presenceabsence of the species
 
 data_for_analysis%>%
-  dplyr::select(-c(habitat_type,
-                   Total.sp., 
-                   Aq..Veg))%>%
+  dplyr::select(-factor)%>%
+  dplyr::mutate(sp_occ=ifelse(Species_A_occ=='0',#Species name#
+                              'absent',
+                              'present'))%>%
   gather(env_var,
          value,
-         Altitude:Salinity)%>%
+         ind_var_1:ind_var_4)%>%
   mutate_at(vars(matches('env_var')),
             as.factor)%>%
-    ggplot(aes(x=sp_occ,
-               y=value))+
-    geom_boxplot(fill="grey")+
-    facet_wrap(~env_var,scales = "free")+
-    theme_bw(base_size = 16)
+  ggplot(aes(x=sp_occ,
+             y=value))+
+  geom_boxplot(fill="grey")+
+  facet_wrap(~env_var,scales = "free")+
+  theme_bw(base_size = 16)+
+  xlab('Species occurrence')+
+  ylab('values')
 
-#defining the formula for the regression
+
+# Defining the formula for the regression
 
 reg.formula<-reformulate(termlabels = paste(names(data_for_analysis%>%
-                                                      subset(.,select=-c(sp_occ,habitat_type)))), response = 'sp_occ')
+                                                    subset(.,select=-c(Species_A_occ,factor)))), response = 'Species_A_occ')
 
-#Logistic regression using all environmental descriptors
+
+# Logistic regression using all environmental descriptors
+
 logistic_model<-glm(reg.formula,
                     data=data_for_analysis,
                     family=binomial)
 
-#Summary of the model
+
+# Summary of the model
+
 summary(logistic_model)
 
-## Obtaining the odds ratios of the descriptors
+
+# Obtaining the odds ratios of the descriptors
+
 exp(coef(logistic_model))
 
-#classification of the cases (here species presence and absence) based on the model
-QuantPsyc::ClassLog(logistic_model,data_for_analysis$sp_occ)
 
-#obtaining a list of most important descriptors (sequentially) using the 'varImp' function in 'caret'package
+# Classification of the cases (here species presence and absence) based on the model
+
+QuantPsyc::ClassLog(logistic_model,data_for_analysis$Species_A_occ)
+
+
+# Obtaining a list of most important descriptors (sequentially) using the 'varImp' function in 'caret'package
 
 caret::varImp(logistic_model)
 
 
+# Using 'glance' from broom package for obtaining the model summary
+
+if(!require(broom))install.packages('broom')
+
+model_summary<-broom::glance(logistic_model)
+
+
+# Obtaining the pseudo R2 of the model based on the summary values obtained above
+
+pseudoR2_model <- 1 - model_summary$deviance/model_summary$null.deviance
+
+pseudoR2_model
+
+
+# Making predictions based on the model. (type = 'response' should be added to obtain predicted probabilities)
+
+data_for_analysis$predicted_val <- predict(logistic_model,type='response')
+
+
+# Plotting the gainplot to check the efficiency of the model
+
+if(!require(WVPlots))install.packages('WVPlots')
+
+GainCurvePlot(data_for_analysis,'predicted_val' ,'Species_A_occ', "logistic_model")
