@@ -63,6 +63,70 @@ data_for_viz%>%
            xaxis = list(title = "variable 2"),
            yaxis = list(title = "variable 3"))
 
+#.c with different symbols for different categories 
+
+data_for_viz%>%
+    plot_ly(x = ~var_1, 
+            y = ~var_3, 
+            color = ~Factor, 
+            colors = "Set1",
+            symbol = ~Factor, 
+            symbols = c('circle','x','o'),
+            size=~var_4)%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 3"))
+
+
+# Bubblechart (scatterplot with size based on a specific variable)
+
+#.a with a single color
+
+data_for_viz%>%
+    plot_ly(x = ~var_2, 
+            y = ~var_3, 
+            type = 'scatter', 
+            mode = 'markers',
+            marker = list(size = ~var_4, 
+                          opacity = 0.6,
+                          color='forestgreen'),
+            size=~var_4)%>%
+    layout(title = 'Bubbleplot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 3"))
+
+#.b with a color scale based on a continous variable
+
+data_for_viz%>%
+    plot_ly(x = ~var_2, 
+            y = ~var_3, 
+            type = 'scatter', 
+            mode = 'markers',
+            color = ~var_4, 
+            colors = 'Reds',
+            marker = list(size = ~var_4, 
+                          opacity = 0.6),
+            size=~var_4)%>%
+    layout(title = 'Bubbleplot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 3"))
+
+#.c with a color scale based on a categorical variable
+
+data_for_viz%>%
+    plot_ly(x = ~var_2, 
+            y = ~var_3, 
+            type = 'scatter', 
+            mode = 'markers',
+            color = ~Factor, 
+            colors = 'Set2',
+            marker = list(size = ~var_4, 
+                          opacity = 0.6),
+            size=~var_4)%>%
+    layout(title = 'Bubbleplot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 3"))
+
 
 #Histogram
 
