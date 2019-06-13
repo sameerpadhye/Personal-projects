@@ -105,4 +105,24 @@ rmse_train
 rmse_test
 
 
+#Using 'modelr' for generating cross validation folds (sets of training and testing data generated from the parent dataset)
+
+
+if(!require(modelr))install.packages('modelr')
+
+data_cross_val<-data_analysis%>%
+    dplyr::select(var_1,var_2)%>% #selecting the variables for analysis
+    modelr::crossv_kfold(5) # number of folds 
+
+
+# 'data_cross_val' is a resample object(). Looping through this object for regression and subsequent results then becomes convenient. More information can be obtained by reading the documentation on the function 'crossv_kfold'.
+
+data_cross_val%>%
+    mutate(model_reg=map(train,
+                         ~lm(formula_regression,data=.)))%>% #model based on training data and looping through the data by map (from purrr)
+    #mutate(predicted_val=map2(model_reg,test,predict))%>% #(if predicted values are needed)
+    #mutate(residual_val=map(model_reg,residuals))%>% #(if resdiuals are needed)
+    mutate(rmse=map2_dbl(model_reg,
+                         test,rmse))%>% # calculating the rmse using the test split created by the crossv_kfold using the map2_dbl function which takes two arguements besides the function (which is rmse here)
+    dplyr::select(.id,rmse) #displaying the rmse for each of the fold
 
