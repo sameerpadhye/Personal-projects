@@ -126,3 +126,28 @@ data_cross_val%>%
                          test,rmse))%>% # calculating the rmse using the test split created by the crossv_kfold using the map2_dbl function which takes two arguements besides the function (which is rmse here)
     dplyr::select(.id,rmse) #displaying the rmse for each of the fold
 
+
+##Using a package called 'DAAG' to obtain predicted scores via kfold cross validation. The function cv.lm is used to obtain the predicted values directly from a kfold cross validation 
+
+if(!require(DAAG))install.packages("DAAG")
+
+
+# model
+
+model_res<-cv.lm(data=(data_analysis%>%
+                           dplyr::select(var_1,var_2)), 
+                 form.lm=formula_regression, #regression formula
+                 m= 10, #number of folds 
+                 plotit = F)
+
+
+# predicted scores using cross validation
+
+model_res$cvpred
+
+
+# RMSE
+
+rmse_model_reg<-Metrics::rmse(model_res$cvpred,model_res$var_1)
+
+rmse_model_reg
