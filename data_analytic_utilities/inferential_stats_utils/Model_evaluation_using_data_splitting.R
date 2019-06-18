@@ -151,3 +151,48 @@ model_res$cvpred
 rmse_model_reg<-Metrics::rmse(model_res$cvpred,model_res$var_1)
 
 rmse_model_reg
+
+
+#Using Bootstrap Aggregating (Bagging) in model evaluation
+
+
+dataset_training # training dataset
+
+dataset_testing # testing dataset
+
+
+# using set.seed for reproducibility
+
+set.seed(100)
+
+
+# Train a bagged model. Library 'ipred' is used for the analysis
+
+if(!require(ipred))install.packages("ipred")
+
+bag_model_train <- bagging(formula = formula_regression, 
+                           data = dataset_training,
+                           coob = TRUE)
+
+# Print the model
+
+print(bag_model_train)
+
+
+# Obtaining predictions using the test data
+
+prediction <- predict(object = bag_model_train,
+                      newdata = dataset_testing,
+                      type = "class")
+
+
+# Look at the pred format
+
+head(prediction)
+
+
+#RMSE for evaluation
+
+rmse_bag_model<-Metrics::rmse(prediction ,dataset_testing$var_1)
+
+rmse_bag_model
