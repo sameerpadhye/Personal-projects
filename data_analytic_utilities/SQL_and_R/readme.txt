@@ -1,0 +1,1 @@
+This folder contains code to connect SQL and manipulate data using R. 
