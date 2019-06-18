@@ -1,0 +1,1 @@
+The folder contains code for different data visualization techniques for univariate as well as multivariate data exploration
