@@ -162,3 +162,43 @@ optimum_tree_model <- prune(tree = train_model,
 
 rpart.plot(x =optimum_tree_model, yesno = 2, type = 2, extra = 0)
 
+
+#################Using a different package 'Randomforest' for analysis########
+
+if(!require(randomForest))install.packages('randomForest')
+
+# train_data and test_data used here as well
+
+set.seed(1)  # for reproducibility
+
+
+#Training the model
+
+rf_model2 <- randomForest(formula = Trait_1 ~ ., # formula
+                          data = train_data, # training_dataset
+                          ntree=5000)  #number of trees
+
+# Print the model output  
+
+print(rf_model2)
+
+
+# Exploring the importance of predictor variables
+
+randomForest::importance(rf_model2)
+
+
+# Generating predictions using the model
+
+prediction2 <- predict(object = rf_model2,   # model object 
+                       newdata = test_data,  # test dataset
+                       type = "response") # for obtaining the values
+prediction2
+
+
+#Obtaining the RMSE (root mean square error) using the package Metrics
+
+if(!require(Metrics))install.packages('Metrics') 
+
+Metrics::rmse(actual = test_data$Trait_1, 
+              predicted = prediction2)
