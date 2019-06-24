@@ -92,6 +92,25 @@ sp_richess_data%>%
                   alpha=0.3)
 
 
+#Species richness esimates using all estimates at once
+
+sp_rich_all<-poolaccum(data_analysis[,-1],
+                       permutations = 999)
+
+sp_rich_all
+
+
+#Plot for above
+
+plot(sp_rich_all)
+
+
+#obtaining summary of specific index
+
+summary(sp_rich_all, 
+        display = "chao")
+
+
 # Summarizing individual species diversity indices
 
 #Shannon diversity of the sites
