@@ -101,3 +101,44 @@ auc(actual = ifelse(test_data$sp_response == "present", 1, 0),
     predicted = prediction_class)  
 
 
+################# Using Randomforest package for classification trees ########
+
+if(!require(randomForest))install.packages('randomForest') 
+
+
+#Obtaining the model based on the training dataset
+
+train_model <- randomForest(formula = formula_regression, 
+                            data = train_data,
+                            ntree=999)
+
+# Checking the model output      
+
+print(train_model)
+
+
+# Grab OOB error matrix & take a look
+
+OOB_err <- train_model$err.rate
+
+head(OOB_err)
+
+
+# Obtaining the final OOB value
+
+oob_err <- OOB_err[nrow(OOB_err), "OOB"]
+
+print(oob_err)
+
+
+# Plot the model trained in the previous exercise
+
+plot(train_model)
+legend(x = "right", 
+       legend = colnames(OOB_err),
+       fill = 1:ncol(OOB_err))
+
+
+# Printing the OOB accuracy
+
+paste0("OOB Accuracy: ", 1 - oob_err)
