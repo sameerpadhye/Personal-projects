@@ -202,3 +202,34 @@ if(!require(Metrics))install.packages('Metrics')
 
 Metrics::rmse(actual = test_data$Trait_1, 
               predicted = prediction2)
+
+
+#Hyperparameter tuning of the 'mtry' with TuneRF in the package Randomforest.'mtry' selects the number of predictor/s sampled randomly at each split while building the tree
+
+tuning_var <- tuneRF(x = subset(train_data, 
+                                select = -Trait_1), # subset of all independent variables
+                     y = train_data$Trait_1, # the dependent variable
+                     ntreeTry = 999) # number of trees to be run
+
+#results (here since the number of predictors is less and dataset is small, result of this optimization can be scanned manually to pick the least value)
+
+tuning_var
+
+
+# In case the number is high and the dataset is large, following code can be used to obtain the least value
+
+optimum_mtry <- tuning_var%>%
+    as.data.frame()%>%
+    filter(OOBError==max(OOBError))
+
+#output
+
+print(optimum_mtry)
+
+
+#Using the this value in the model
+
+rf_model_tuned <- randomForest(formula = Trait_1 ~ ., # formula
+                               data = train_data, # training_dataset
+                               ntree=5000,
+                               mtry=optimum_mtry[,"mtry"])
