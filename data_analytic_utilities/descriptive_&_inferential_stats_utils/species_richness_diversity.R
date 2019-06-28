@@ -132,3 +132,74 @@ simpson_div
 evenness_div<-shannon_div/sp_number
 
 evenness_div
+
+
+##Function for obtaining species richness results of individual indices in a dataframe for easy plotting using ggplot2
+
+species_richess_data<-function(x,gamma=c("jack1",
+                                         "jack2", 
+                                         "chao", 
+                                         "boot",
+                                         "Species"))
+{ 
+  
+  species_acc<-specaccum(x%>%
+                           select_if(is.numeric),
+                         method = "random",
+                         permutations = 999,
+                         conditioned = TRUE,
+                         gamma = gamma)
+  
+  sp_accu_sites<-species_acc%>%
+    magrittr::use_series(sites) 
+  
+  sp_accu_richness<-species_acc%>%
+    magrittr::use_series(richness)
+  
+  sp_accu_sd<-species_acc%>%
+    magrittr::use_series(sd)
+  
+  sp_richess_data<-cbind(sites=sp_accu_sites,
+                         richness=sp_accu_richness,
+                         std_dev=sp_accu_sd)%>%
+    as.data.frame()
+  
+  print(sp_richess_data)
+}
+
+
+##Rarefaction
+#Here a slightly modified dataset has been used (from the sample_dataset)
+
+#Data file path (assumed that the sample data is saved in the working directory and saved as an excel file)
+
+data_path<-paste0(getwd(),"/rarefaction_data.xlsx")
+
+
+#Importing data for analysis
+
+data_analysis<-read_excel(data_path,
+                          sheet=1)
+
+
+#Finding the sample (site) having minimum number of individuals 
+
+min_ind_sample<-data_analysis[,-1]%>%
+  rowSums(.)%>%
+  min(.)
+
+
+#Rarefaction (using the min_ind_sample as a sample value in the rarefaction analysis)
+
+rarefaction<-rarefy(data_analysis[,-1],
+                    sample = min_ind_sample)
+
+rarefaction
+
+#plot using rarefied values and species_number
+
+plot(sp_number, 
+     rarefaction, 
+     xlab = "Species number (Observed)", 
+     ylab = "Species number (Rarefied)",
+     main = " Observed species no. vs. Rarefied species no.")
