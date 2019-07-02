@@ -89,7 +89,7 @@ data_text_all<-data_text%>%
 head(data_text_all,10)
 
 
-# Basic visualizations of the data. Top 25 words in the data
+# Visualization of the top 25 words in the data
 
 data_text_all%>%
     top_n(25)%>%
@@ -98,7 +98,53 @@ data_text_all%>%
     geom_bar(stat = "identity")+
     theme_bw(base_size = 15)+
     theme(axis.text.x = element_text(angle = 90, 
-                                     hjust = 1))
+                                     hjust = 1))+
+    coord_flip() # for easier viewing
+
+
+#Exploring the word count wherein the count is than the median count
+
+data_text_all%>%
+    filter(n>median(n))
+
+
+#Creating custom stop words for removal after exploring the data (stop_words contains two columns namely, words and lexicon and hence the column names of the new data are kept same)
+
+additional_stop_words <- tibble::tribble(
+    ~word,  ~lexicon,
+    # custom words are added here. These will change as per user requirement
+    "mm", "CUSTOM",
+    "figs",  "CUSTOM",
+    "ing", "CUSTOM",
+    "fig", "CUSTOM"
+)
+
+
+#Creating new stop_word_data by binding the above dataset with stopwords data
+
+stop_words_add <- stop_words %>% 
+    bind_rows(additional_stop_words)
+
+
+#Creating a new dataset by using the new stop words. A new factor is created based on 1. the words and 2. their respective counts
+
+
+data_text_all2<-data_text_all%>%
+    anti_join(stop_words_add) %>%
+    arrange(desc(n))%>%
+    dplyr::mutate(word_fct=fct_reorder(word,n))
+
+
+# Plotting the new dataset (top 25 words) with the new factor
+
+data_text_all2%>%
+    top_n(25)%>%
+    ggplot(aes(x = word_fct, y = n)) +
+    geom_bar(stat = "identity")+
+    coord_flip()+
+    ggtitle("Word count of the pdf")
+
+
 
 
 
