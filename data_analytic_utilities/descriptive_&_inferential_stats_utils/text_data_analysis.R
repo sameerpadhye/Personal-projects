@@ -145,7 +145,25 @@ data_text_all2%>%
     ggtitle("Word count of the pdf")
 
 
+# Wordcloud for the words
 
+if(!require(wordcloud))install.packages('wordcloud')
+if(!require(RColorBrewer))install.packages('RColorBrewer')
+
+
+# Create a complaint word cloud of the top 50 terms, colored red
+
+wordcloud(
+    words = data_text_all2$word, #words
+    freq = data_text_all2$n, # their counts
+    max.words = 50,  # max words to be included in the figure
+    rot.per=0.5,   #rotation of words
+    min.freq=3,   # min frequency of words cutoff
+    scale=c(1.5,.5),  #scale of the size of the words
+    vfont=c("sans serif",
+            "bold"), #Font
+    colors=brewer.pal(8, 
+                      "Dark2")) #colors (RcolorBrewer used here)
 
 
 
