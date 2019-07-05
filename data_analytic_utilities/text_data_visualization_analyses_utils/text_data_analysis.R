@@ -166,4 +166,62 @@ wordcloud(
                       "Dark2")) #colors (RcolorBrewer used here)
 
 
+##Using tm package for text_mining
+
+## More information can be found on https://towardsdatascience.com/understanding-and-writing-your-first-text-mining-script-with-r-c74a7efbe30f
+
+if(!require(tm))install.packages('tm')
+
+
+# Converting the pdf file to a corpus file
+
+text_data<-pdf_text(txt_file_path)
+
+corpus_text<-SimpleCorpus(VectorSource(text_data))%>% #creating the corpus
+    tm_map(.,removePunctuation)%>% #remove punctuations
+    tm_map(.,stripWhitespace)%>% # remove white spaces
+    tm_map(.,removeWords,
+           stopwords('english')) # remove common stop words and articles
+
+
+# Converting the corpus file to a document term matrix followed by conversion into a matrix
+
+txt_matrix<-DocumentTermMatrix(corpus_text)%>%
+    as.matrix(.)%>%
+    t(.)
+
+
+# Converting the matrix into a tibble with word counts
+
+txt_matrix_sum<-txt_matrix%>%
+    data.frame(.)%>% #conversion into a dataframe
+    rownames_to_column('rownames')%>% # obtaining the words 
+    mutate(word_count=rowSums(.[,-1]))%>% #getting the counts
+    dplyr::arrange(desc(word_count))%>% #arranging the words based on counts
+    dplyr::select(rownames,word_count)%>% #selecting words and counts
+    dplyr::rename(word=rownames)%>% #renaming the column (to word)
+    anti_join(stop_words) # removing additional stop words (from quanteda)
+
+
+#Viewing the data
+
+View(txt_matrix_sum)
+
+#Wordcloud using the above dataset
+
+if(!require(wordcloud))install.packages('wordcloud')
+
+wordcloud(
+    words = txt_matrix_sum$word, #words
+    freq = txt_matrix_sum$word_count, # their counts
+    max.words = 50,  # max words to be included in the figure
+    rot.per=0.5,   #rotation of words
+    min.freq=3,   # min frequency of words cutoff
+    scale=c(1.5,.5),  #scale of the size of the words
+    vfont=c("sans serif","bold"), #Font
+    colors=brewer.pal(8, "Dark2"))
+
+
+
+
 
