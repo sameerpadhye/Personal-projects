@@ -231,7 +231,33 @@ data_for_viz%>%
            xaxis = list(title = "variable 1"),
            yaxis = list(title = "values"))
 
+
+#Pie chart 
+
+data_for_viz%>%
+    plot_ly(labels = ~Factor, 
+            values = ~var_1, 
+            type = 'pie')%>%
+    layout(title = 'Var_1 proportion w.r.t. the Factor',
+           xaxis = list(showgrid = T),
+           yaxis = list(showgrid = T))
+
+
+#Violin plot
+
+data_for_viz%>%
+    plot_ly(
+        x=~Factor,
+        y = ~var_4,
+        type = 'violin',
+        split = ~Factor,
+        box = list(
+            visible = T
+        ))%>%
+    layout(title = 'Var_4 distribution w.r.t. the Factor',
+           xaxis = list(title="Factor",
+                        showgrid = T),
+           yaxis = list(title="var_4 values",
+                        showgrid = T))
+
 #The plots can be modified much more based on the requirement
-
-#Pie chart will be added soon
-
