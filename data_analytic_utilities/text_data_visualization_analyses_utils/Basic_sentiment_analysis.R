@@ -12,7 +12,7 @@ library(tidyverse)
 
 # Data file path (Data file is assumed to be in the working directory)
 
-test_file_path<- paste0(getwd(),"/sample.pdf")
+txt_file_path<- paste0(getwd(),"/sample.pdf")
 
 
 #The extraction part is same as for other text analyses using pdftools package
@@ -150,8 +150,60 @@ word_count_sentiment3%>%
     ) +
     geom_col(show.legend = FALSE) +
     coord_flip() + 
-    # Title the plot "Overall Sentiment by Complaint Type," with an "Airline Twitter Data" subtitle
     labs(
         title = "Overall Sentiment"
     ) + 
     theme_bw(base_size = 14)
+
+
+# Converting the pdf file to a corpus file using pdftools and tm package
+
+text_data2<-pdf_text(txt_file_path)
+
+corpus_text<-SimpleCorpus(VectorSource(text_data2))%>% #creating the corpus
+    tm::tm_map(.,removePunctuation)%>% #remove punctuations
+    tm::tm_map(.,stripWhitespace)%>% # remove white spaces
+    tm::tm_map(.,removeWords,
+               stopwords('english')) # remove common stop words and articles
+
+
+#Obtaining the sentiment scores using SentimentAnalysis 
+
+if(!require(SentimentAnalysis))install.packages('SentimentAnalysis')
+
+
+#Performing the sentiment analysis
+
+sentiment_data<-analyzeSentiment(corpus_text,
+                                 removeStopwords = TRUE)
+
+# Explore the results 
+
+View(sentiment_data)
+
+
+#Obtaining the continous sentiment scores into as factors of sentiments (positive, negative, neutral)
+
+sentiment_groups<-sentiment_data%>%
+    convertToDirection(.)%>%
+    magrittr::use_series('SentimentLM')%>%
+    table(.)
+
+#View the results
+
+sentiment_groups
+
+
+#Obtaining the continous sentiment scores into binary responses (positive, negative)
+
+sentiment_grp_binary<-sentiment_data%>%
+    convertToBinaryResponse(.)%>%
+    magrittr::use_series('SentimentLM')%>%
+    table(.)
+
+#View the results
+
+sentiment_grp_binary
+
+
+
