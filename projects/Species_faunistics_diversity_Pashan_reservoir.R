@@ -14,10 +14,10 @@ library(magrittr)
 data_path<-"C:/Users/samee/Desktop/R data/sample_datasets/pashan_data.xlsx"
 
 
-#Pashan pre 2016 data
+#Pashan pre 2016 data.
 
 pashan_pre_2016<-read_excel(data_path,
-                          sheet=1)
+                            sheet=1)
 
 
 #Pashan 2016 collection data
@@ -26,9 +26,15 @@ pashan_2016<-read_excel(data_path,
                         sheet=2)
 
 
+#two groups will be used one for 2016 samples which symbolize the samples collected after beautification and 2008-2010 samples which represent the samples collected before the beautification. Therefore some of the samples from the pashan_pre_2016 will be removed for the analysis. These years have been selected since the sampling strategy was similar to the 2016 sampling.
+
+pashan_pre_2016_final<-pashan_pre_2016%>%
+    dplyr::select('Species':'2010_10')
+
+
 #Pashan full data
 
-pashan_full_data<-pashan_pre_2016%>%
+pashan_full_data<-pashan_pre_2016_final%>%
     left_join(pashan_2016%>%
                   dplyr::select(-Family),
               by='Species')%>%
@@ -37,10 +43,10 @@ pashan_full_data<-pashan_pre_2016%>%
 
 #Exploring the data
 
-View(pashan_full_data,5)
+names(pashan_full_data)
 
 
-#converting the data from wide to long format
+#converting the data from wide to long format using both datasets (pre 2016 and 2016 respectivley)
 
 pashan_long<-pashan_full_data%>%
     dplyr::select('Species':'2010_10',
@@ -76,6 +82,10 @@ pashan_long<-pashan_full_data%>%
 #Exploring the data
 
 View(pashan_long)
+
+# Re-order the collection period groups for based on collection periods (i.e. pre and post respectivley)
+
+pashan_long$collection_grp<-fct_relevel(pashan_long$collection_grp,"pre")
 
 
 ########## Pashan data exploration and visualization ###############
@@ -158,14 +168,14 @@ pashan_species%>%
 
 #The data required for the analysis need to be in wide format and hence the original data that was imported will be used. This has been done for the pre and post beautification period samples respectively
 
-#1. Pre beautification species richness estimates
+##1. Pre beautification species richness estimates
 
-names(pashan_pre_2016)
+names(pashan_pre_2016_final)
 
 
 #Transposing the data for further calculations
 
-pashan_pre_2016t<-pashan_pre_2016 %>%
+pashan_pre_2016t<-pashan_pre_2016_final %>%
     select_if(is.numeric)%>%
     t(.)%>%
     data.frame(.)
@@ -192,21 +202,101 @@ sp_number_pre%>%
                                      hjust = 1))+
     labs(x="Collection period",
          y="Total species",
-         title = "Total species observed during two periods of collection")
+         title = "Total species observed in pre beautification period")
 
 
-#Generating species accumulation curves (using vegan).Chao2 is used here since the data are presence/absence data
+#Generating species richness estimates and accumulation curves of the pre beautification samples (using vegan)
 
-species_acc_pre<-specaccum(pashan_pre_2016t,
-                           method = "random",
-                           permutations = 999,
-                           conditioned = TRUE,
-                           gamma = "chao2")
+sp_rich_all_pre<-poolaccum(pashan_pre_2016t,
+                           permutations = 999)
 
 #View the result
 
-species_acc_pre
+sp_rich_all_pre
+
+#plot of accumulation curves using base R
+
+plot(sp_rich_all_pre)
 
 
+##2. Post beautification species richness estimates
 
-#WIP
+names(pashan_2016)
+
+
+#Transposing the data for further calculations
+
+pashan_2016t<-pashan_2016 %>%
+    select_if(is.numeric)%>%
+    t(.)%>%
+    data.frame(.)
+
+
+#Obtaining the total number of species per sample
+
+sp_number_post<-vegan::specnumber(pashan_2016t)%>%
+    data.frame(.)%>%
+    rownames_to_column()%>%
+    dplyr::rename('sp_no'='.',
+                  'collection_years'='rowname')
+
+
+#scatter plot showing the species numbers in respective years considered as post beautification
+
+sp_number_post%>%
+    ggplot(aes(x=collection_years,
+               y=sp_no))+
+    geom_point(col='forestgreen',
+               size=4)+
+    theme_bw(base_size = 15)+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1))+
+    labs(x="Collection period",
+         y="Total species",
+         title = "Total species observed in post beautification period")
+
+
+#Generating species richness estimates and accumulation curves of the pre beautification samples (using vegan)
+
+sp_rich_all_post<-poolaccum(pashan_2016t,
+                            permutations = 999)
+
+#View the result
+
+sp_rich_all_post
+
+#plot of accumulation curves using base R
+
+plot(sp_rich_all_post)
+
+
+##Comparative account of species number samplewise distribution (boxplots) of pre and post beautification periods using the sp_number_pre and sp_number_post datasets
+
+sp_numb_dist<-sp_number_pre%>% # pre beautification sp numbers
+    dplyr::bind_rows(sp_number_post)%>% # post beautification sp numbers
+    dplyr::mutate(collection_grp=rep(c("pre","post"), # adding the beautification period categories
+                                     times=c(nrow(sp_number_pre),
+                                             nrow(sp_number_post))))
+
+
+#Recoding the collection group factor levels
+
+sp_numb_dist$collection_grp<-fct_relevel(sp_numb_dist$collection_grp,"pre")
+
+
+# explore the result
+
+View(sp_numb_dist)
+
+
+#plot to visualize the result
+
+sp_numb_dist%>%
+    ggplot(aes(x=collection_grp,
+               y=sp_no))+
+    geom_boxplot(col='black',
+                 fill='forestgreen')+
+    theme_bw(base_size = 15)+
+    labs(x="Collection period",
+         y="Total species",
+         title = "Species number distribution for two collection periods")
