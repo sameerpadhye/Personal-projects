@@ -300,3 +300,69 @@ sp_numb_dist%>%
     labs(x="Collection period",
          y="Total species",
          title = "Species number distribution for two collection periods")
+
+
+##Non metric dimensional scaling to assess the species association of the pre and post collection periods of Pashan
+
+# Obtaining the data for analysis.Since the analysis would require the pre and post levels, pashan_long dataset is used
+
+pashan_nmds_data<-pashan_long%>%
+    dplyr::select(Species,
+                  Years:collection_grp)%>%
+    tidyr::spread(Species,
+                  values)%>%
+    column_to_rownames('Years')
+
+
+#nMDS 
+
+pashan_nmds<-metaMDS(pashan_nmds_data%>%
+                         dplyr::select_if(is.numeric), # selecting the numeric data
+                     distance = 'jaccard', #jaccard is used here in order 
+                     k=2,
+                     trymax = 99)
+
+
+#Stressplot of the nMDS
+
+stressplot(pashan_nmds)
+
+
+# nMDS plot
+
+# to obtain the number of observations of pre and post period respectivley
+
+table(pashan_nmds_data$collection_grp)['pre']
+
+table(pashan_nmds_data$collection_grp)['post']
+
+#plot
+
+#blank plot
+ordiplot(pashan_nmds,
+         type="n")
+
+#species data
+orditorp(pashan_nmds,
+         display="species",
+         col="red",
+         air=0.01)
+
+#sites data
+orditorp(pashan_nmds,
+         display="sites",
+         cex=0.9,
+         air=0.01,
+         col=c(rep("steelblue",
+                   table(pashan_nmds_data$collection_grp)['pre']),
+               rep("forestgreen",
+                   table(pashan_nmds_data$collection_grp)['post'])))
+
+#convex hulls
+# ordihull(pashan_nmds,
+#          groups=pashan_nmds_data$collection_grp,
+#          draw="polygon",
+#          col="grey50",
+#          label=F)
+
+
