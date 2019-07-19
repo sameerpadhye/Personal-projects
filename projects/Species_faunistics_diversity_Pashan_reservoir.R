@@ -366,3 +366,41 @@ orditorp(pashan_nmds,
 #          label=F)
 
 
+## Using PERMANOVA to check whether the differences in the species communities in the pre and post beautificationp periods are significant or not. The modified dataset used for nmds is used here as well
+
+str(pashan_nmds_data)
+
+# Before performing PERMANOVA, the data are converted into distances
+
+pashan_perm_dist<-vegdist(subset(pashan_nmds_data,
+                                 select=-collection_grp), 
+                          method = "jaccard",
+                          binary = T,
+                          na.rm = T)
+
+
+#This is followed by checking the beta dispersion of the distance data for multivariate spread (dispersion) of data using the pre and post beautification groups within the data
+
+data_betadis<-betadisper(pashan_perm_dist, 
+                         pashan_nmds_data$collection_grp)%>%
+    anova(.)
+
+
+#results of the beta dispersion
+
+paste0("The P value for beta dispersion is:", data_betadis$`Pr(>F)`[1])
+
+#Since the p value is more than 0.05, null hypothesis cannot be rejected (which means data have a homogeneous multivariate spread (equivalent to homogeneity of variances))
+
+
+#PERMANOVA (Using Jaccard index)
+
+data_permanova<-adonis(subset(pashan_nmds_data,
+                              select=-collection_grp) ~ collection_grp,
+                       data = pashan_nmds_data, 
+                       permutations = 5000, 
+                       method = "jaccard")
+
+#PERMANOVA results
+
+data_permanova$aov.tab
