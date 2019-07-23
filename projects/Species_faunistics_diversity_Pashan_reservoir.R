@@ -404,3 +404,130 @@ data_permanova<-adonis(subset(pashan_nmds_data,
 #PERMANOVA results
 
 data_permanova$aov.tab
+
+
+############### Functional diversity analysis ###############################
+
+#Importing functional trait data
+
+functional_traits<-read_excel("C:/Users/samee/Desktop/R data/sample_datasets/func_traits_species.xlsx", 
+                              sheet = 1)
+
+
+#Pashan nmds data is used for functional diversity analysis since it has the pre and post beautification periods added to the dataset. 
+
+#Data modification is crucial before proceeding for functional diversity analysis because:
+
+#1. Species only present in the Pashan lake need to be extracted out of the functional trait dataset which has more than 50 species data
+
+#2.Rownames and columnames should match exactly corresponding to species names in the species diversity and functional dataset respectively
+
+#3. Analyses has to be carried out for two collection periods. If the sample sequence is preserved, analysis can be carried out one time and then separated (which has been done below)
+
+#Since pashan nmds data has been selected for the analysis, its species names sequence will be used for all further analysis. Thus this dataset is first modified in order to perform a join with the functional trait dataset which will be the species trait data in the same order as the modified pashan nmds data
+
+
+#1. Obtaining the functional trait data
+
+# Species names of the nmds dataset is used and then joined with the functional traits dataset to get the necessary species order
+
+pashan_spnames_for_join<-pashan_nmds_data%>%
+    dplyr::select(-collection_grp)%>%
+    t(.)%>%
+    data.frame(.)%>%
+    rownames_to_column()%>%
+    dplyr::rename('Species'='rowname')%>%
+    dplyr::select_if(is.character)
+
+
+func_traits_pashan<-pashan_spnames_for_join%>%
+    left_join(functional_traits, 
+              by = "Species")%>%
+    dplyr::select(-Family,
+                  -Salinity,
+                  -Helmet,
+                  -Water_Zone,
+                  -Presence_Ocellus)%>%
+    mutate_if(is.character, 
+              as.factor)%>%
+    column_to_rownames('Species')
+
+
+#The species richness dataset (pashan nmds dataset is used as Pre and post periods are present and the sample order is preserved).
+
+pashan_species_data<-pashan_nmds_data%>%
+    dplyr::select(-collection_grp)%>%
+    as.matrix(.)
+
+
+#Checking if functional traits data of all species are in same order
+
+#indices for 1. pashan species and 2. functional traits
+
+species_order_pashan<-colnames(pashan_species_data)
+
+species_order_fun_traits<-row.names(func_traits_pashan)
+
+#checking the order
+
+intersect(species_order_fun_traits,species_order_pashan)
+
+match(species_order_fun_traits,species_order_pashan)
+
+
+# Calculating functional diversity indices
+
+#1. functional composition
+
+if(!require(FD))install.packages('FD') 
+
+func_comp_pashan<-functcomp(func_traits_pashan, pashan_species_data, CWM.type = c("dom"))
+
+
+#2. functional diversity
+
+pashan_fun_traits<-dbFD(func_traits_pashan, 
+                        pashan_species_data, 
+                        calc.FRic = T, 
+                        calc.FDiv = T, 
+                        ord = "podani", 
+                        calc.FGR = T, 
+                        clust.type = "average", 
+                        stand.FRic = T, 
+                        w.abun = F,
+                        corr = "cailliez")
+
+# Functional redundancy for each sample has been calculated using SYNCSA package
+
+if(!require(SYNCSA))install.packages('SYNCSA') 
+
+#calculation
+
+pashan_func_red<-rao.diversity(pashan_species_data, 
+                               traits = func_traits_pashan, 
+                               phylodist = NULL, 
+                               checkdata = TRUE, 
+                               ord = "podani", 
+                               put.together = NULL)
+
+
+# Extracting the individual indices from the results.The sample names and collection periods are also added to the dataset since the order has been preserved already
+
+pashan_fun_indices<-data.frame(Feve=pashan_fun_traits$FEve,
+                               Fdis=pashan_fun_traits$FDis,
+                               Fdiv=pashan_fun_traits$FDiv,
+                               Fric=pashan_fun_traits$FRic,
+                               Fred=pashan_func_red$FunRedundancy,
+                               collection_grps=pashan_nmds_data$collection_grp)%>%
+    dplyr::select(collection_grps,
+                  everything())
+
+
+#Functional group richness for each Pashan sample extracted from the dbFD result
+
+pashan_fun_frp_rich<-pashan_fun_traits$FGR 
+
+
+# Species categorized as per the number of groups extracted from the dbFD result
+
+pashan_fun_grp_assign<-data.frame(sp.fun.cat=pashan_fun_traits$spfgr)
