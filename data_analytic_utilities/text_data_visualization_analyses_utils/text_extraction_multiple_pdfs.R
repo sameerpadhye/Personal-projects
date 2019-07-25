@@ -51,7 +51,29 @@ View(txt_matrix)
 
 #The text data still contains meaningless words 
 
-##code for removing these words will be added soon.
+#The text data still contains meaningless words 
+
+#to remove meaningless words, grady_augmented lexicon from lexicon package is used
+
+if(!require(lexicon))install.packages('lexicon') 
+
+#obtaining the words
+
+grady_data<-grady_augmented%>%
+    as.tibble(.)%>%
+    dplyr::rename(name=value)
+
+#Words from txt matrix is extracted followed by joining with the above dataset
+
+word_data_pdfs<-txt_matrix%>%
+    data.frame(.)%>%
+    rownames_to_column(.)%>%
+    inner_join(grady_data,
+               by=c('rowname'='name'))
+
+#Viewing the result
+
+View(word_data_pdfs)
 
 
 ##2.Using pdftools package######
