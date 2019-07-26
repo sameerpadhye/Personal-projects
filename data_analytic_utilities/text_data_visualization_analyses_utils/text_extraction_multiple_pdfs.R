@@ -149,3 +149,29 @@ edited_text2<-final_text2%>%
 edited_text
 
 editex_text2
+
+
+#Stemming and Lemmatization of the words. Here the results from the first part 'word_data_pdfs' have been used
+
+if(!require(SnowballC))install.packages('SnowballC') #stemming
+
+if(!require(textstem))install.packages('textstem') #lemmatization
+
+#A dictionary needed before actual lemmatization using the textstem and lexicon package
+
+if(!require(lexicon))install.packages('lexicon') 
+
+lemmatized_dictionary <- textstem::make_lemma_dictionary(word_data_pdfs$rowname, 
+                                                         engine = 'lexicon')
+
+#Obtaining the lemmatized and stemmed words
+
+word_data_pdfs<-word_data_pdfs%>%
+    mutate(stemwords=SnowballC::wordStem(rowname,
+                                         language = 'english'),
+           lemm_words=textstem::lemmatize_strings(rowname,
+                                                  lemmatized_dictionary))
+
+#Viewing the result
+
+View(word_data_pdfs)
