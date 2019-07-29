@@ -531,3 +531,75 @@ pashan_fun_frp_rich<-pashan_fun_traits$FGR
 # Species categorized as per the number of groups extracted from the dbFD result
 
 pashan_fun_grp_assign<-data.frame(sp.fun.cat=pashan_fun_traits$spfgr)
+
+
+#Functional diversity indices comparison between the two periods
+
+#1. Obtaining the dataset 
+
+sel_func_div<-pashan_fun_indices%>%
+    gather(fundiv_indices,
+           values,
+           Fdiv:Fred)
+
+#2. plot to visualize the functional diversity indices
+
+sel_func_div%>%
+    ggplot(aes(collection_grps,
+               values))+
+    geom_boxplot(fill='steelblue')+
+    facet_wrap(~fundiv_indices,
+               scales = 'free')+
+    theme_bw(base_size = 14)
+
+
+#3. Performing a PERMANOVA of the func diversity indices 
+
+
+names(pashan_fun_indices)
+
+
+## Using PERMANOVA to check whether the differences in the species communities in the pre and post beautificationp periods are significant or not. The modified dataset used for nmds is used here as well
+
+str(pashan_nmds_data)
+
+# Before performing PERMANOVA, the data are converted into distances
+
+pashan_perm_dist2<-pashan_fun_indices%>%
+    dplyr::select(-c("Fdis",
+                     "Feve",
+                     "collection_grps"))%>%
+    vegdist(., 
+            method = "gower",
+            binary = T,
+            na.rm = T)
+
+
+
+#This is followed by checking the beta dispersion of the distance data for multivariate spread (dispersion) of data using the pre and post beautification groups within the data
+
+data_betadis2<-betadisper(pashan_perm_dist2, 
+                          pashan_fun_indices$collection_grp)%>%
+    anova(.)
+
+
+#results of the beta dispersion
+
+paste0("The P value for beta dispersion is:", data_betadis$`Pr(>F)`[1])
+
+#Since the p value is more than 0.05, null hypothesis cannot be rejected (which means data have a homogeneous multivariate spread (equivalent to homogeneity of variances))
+
+
+#PERMANOVA (Using Gower index)
+
+data_permanova2<-adonis(pashan_fun_indices%>%
+                            dplyr::select(-c("Fdis",
+                                             "Feve",
+                                             "collection_grps")) ~ collection_grps,
+                        data = pashan_fun_indices, 
+                        permutations = 5000, 
+                        method = "gower")
+
+#PERMANOVA results
+
+data_permanova2$aov.tab
