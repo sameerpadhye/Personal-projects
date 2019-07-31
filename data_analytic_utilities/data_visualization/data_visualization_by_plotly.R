@@ -36,21 +36,59 @@ data_for_viz%>%
            axis = list(title = "Factors"),
            yaxis = list(title = "variable 1"))
 
+#OR
+
+data_for_viz %>%
+    plot_ly(x = ~Factor, 
+            y = ~var_1,
+            color=~Factor) %>%
+    add_boxplot(opacity=0.6)%>%
+    layout(title = 'Boxplot',
+           axis = list(title = "Factors"),
+           yaxis = list(title = "variable 1"))
+
 
 #Scatter plot 
 
-#.a with a single color (for data points)
+#Scatter plot 
+
+#.a1 with a single color (for data points)
 
 data_for_viz%>%
-plot_ly(x = ~var_2, 
-        y = ~var_3,
-        marker = list(size = 10,
-                      color = "forestgreen",
-                      line = list(color = 'black',
-                                  width = 1)))%>%
+    plot_ly(x = ~var_2, 
+            y = ~var_3,
+            marker = list(size = 10,
+                          color = ~Factor,
+                          line = list(color = 'black',
+                                      width = 1)))%>%
     layout(title = 'Scatterplot',
            xaxis = list(title = "variable 2"),
            yaxis = list(title = "variable 3"))
+
+#OR
+
+data_for_viz%>%
+    plot_ly(x =~var_2, 
+            y =~var_3) %>%
+    add_markers(color=I("#111e6c"))%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"),
+           yaxis = list(title = "variable 3"))
+
+
+#.a2 with a single color,size, shape and opacity (for data points)
+
+data_for_viz%>%
+    plot_ly(x = ~var_2, 
+            y = ~var_3) %>% 
+    add_markers(marker = list(color='orange',
+                              symbol = "diamond", 
+                              size = 6,
+                              opacity=0.4))%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"),
+           yaxis = list(title = "variable 3"))
+
 
 #.b with color based on a category (for data points)
 
@@ -58,10 +96,11 @@ data_for_viz%>%
     plot_ly(x = ~var_2, 
             y = ~var_3,
             type = 'scatter',
-            color = ~Factor)%>%
+            color = ~Factor)%>%  # here the numbers based on a continous variable as well such as e.g. log(var_1)
     layout(title = 'Scatterplot',
            xaxis = list(title = "variable 2"),
            yaxis = list(title = "variable 3"))
+
 
 #.c with different symbols for different categories 
 
@@ -73,6 +112,17 @@ data_for_viz%>%
             symbol = ~Factor, 
             symbols = c('circle','x','o'),
             size=~var_4)%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 1"),
+           yaxis = list(title = "variable 3"))
+
+#OR
+
+data_for_viz %>%
+    plot_ly(x = ~var_1, 
+            y = ~var_3, 
+            symbol = ~Factor)  %>%
+    add_markers()%>%
     layout(title = 'Scatterplot',
            xaxis = list(title = "variable 1"),
            yaxis = list(title = "variable 3"))
@@ -139,6 +189,16 @@ data_for_viz%>%
            xaxis = list(title = "variable 4"), 
            yaxis = list(title = "Count"))
 
+#OR
+
+data_for_viz %>%
+    plot_ly(x = ~var_4) %>%
+    add_histogram(color=I("#111e6c"))%>%
+    layout(title = "Histogram", 
+           xaxis = list(title = "variable 4"), 
+           yaxis = list(title = "Count"))
+
+
 #b. histogram of the variable considering factor wise separation
 
 data_for_viz%>%
@@ -157,6 +217,17 @@ data_for_viz%>%
     plot_ly(x = ~Factor,
             y=~var_3,
             type = "bar")%>%
+    layout(title = 'Barchart',
+           xaxis = list(title = "Factors"),
+           yaxis = list(title = "variable 3"))
+
+#OR
+
+data_for_viz %>%
+    plot_ly(x = ~Factor, 
+            y = ~var_2, 
+            color = ~Factor) %>%
+    add_bars()%>%
     layout(title = 'Barchart',
            xaxis = list(title = "Factors"),
            yaxis = list(title = "variable 3"))
