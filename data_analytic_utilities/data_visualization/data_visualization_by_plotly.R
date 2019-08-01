@@ -331,4 +331,89 @@ data_for_viz%>%
            yaxis = list(title="var_4 values",
                         showgrid = T))
 
-#The plots can be modified much more based on the requirement
+
+# Modifying hover information in the plots
+
+#1. using available information as given in the dataset
+
+data_for_viz%>%
+    plot_ly(x =~var_2, 
+            y =~var_3,
+            hoverinfo='y') %>% ## Hoverinformation 
+    add_markers(color=I("#111e6c"))%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"),
+           yaxis = list(title = "variable 3"))
+
+
+#2. using available information as given in the dataset
+
+data_for_viz%>%
+    plot_ly(x =~var_2, 
+            y =~var_3,
+            color=~Factor,
+            hoverinfo='text',
+            text=~paste("var_2:", var_2, "<br>",
+                        "var_3:", var_3, "<br>",
+                        "Factor:", Factor))%>% ## Hoverinformation customized
+    add_markers()%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"),
+           yaxis = list(title = "variable 3"))
+
+
+
+# Transforming the x-axis (log scale shown here)
+
+data_for_viz%>%
+    plot_ly(x =~var_1, 
+            y =~var_2)%>% 
+    add_markers(color=I("black"),
+                size=5,
+                opacity=0.5)%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2",
+                        type= "log"), #log conversion for xaxis added here
+           yaxis = list(title = "variable 3",
+                        type='log')) #log conversion for yaxis added here
+
+
+
+# Set the background color to #ebebeb and remove the vertical grid
+
+data_for_viz%>%
+    plot_ly(x =~var_1, 
+            y =~var_2)%>% 
+    add_markers(color=I("orange"),
+                size=5,
+                opacity=0.3)%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"), 
+           yaxis = list(title = "variable 3"),
+           paper_bgcolor="gray40")  # background color added here
+
+
+# Visualizing a fitted regression model 
+
+#model
+
+reg_model <- lm(var_1 ~ var_4, 
+                data = data_for_viz)
+
+# plot
+
+data_for_viz%>%
+    plot_ly(x =~var_4, 
+            y =~var_1,
+            hoverinfo='text',
+            text=~paste("var_2:", var_2, "<br>",
+                        "var_3:", var_3, "<br>",
+                        "Factor:", Factor))%>% 
+    add_markers(showlegend=FALSE)%>%
+    layout(title = 'Scatterplot',
+           xaxis = list(title = "variable 2"),
+           yaxis = list(title = "variable 3"))%>%
+    add_lines(y=~fitted(reg_model)) # line fitted here
+
+
+
