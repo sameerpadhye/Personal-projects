@@ -332,9 +332,33 @@ data_for_viz%>%
                         showgrid = T))
 
 
-# Modifying hover information in the plots
+# Density plots
 
-#1. using available information as given in the dataset
+var1_density <- density(data_for_viz$var_1, 
+                        na.rm = TRUE)
+
+var3_density <- density(data_for_viz$var_3, 
+                        na.rm = TRUE)
+
+# Overlay density plots
+
+plot_ly() %>%
+    add_lines(x = ~var1_density$x, 
+              y = ~var1_density$y, 
+              name = "variable_1", 
+              fill = 'tozeroy') %>%
+    add_lines(x = ~var3_density$x, 
+              y = ~var3_density$y, 
+              name = "variable_3", 
+              fill = 'tozeroy') %>%
+    layout(title="Variable density plots",
+           xaxis = list(title = 'Variables'),
+           yaxis = list(title = 'Density'))
+
+
+# Modifications which can be made in the basic plots
+
+#1. Changing the hover information using just one axis in the dataset
 
 data_for_viz%>%
     plot_ly(x =~var_2, 
@@ -346,7 +370,7 @@ data_for_viz%>%
            yaxis = list(title = "variable 3"))
 
 
-#2. using available information as given in the dataset
+#2. Changing the hover information using all available information as given in the dataset
 
 data_for_viz%>%
     plot_ly(x =~var_2, 
@@ -363,7 +387,7 @@ data_for_viz%>%
 
 
 
-# Transforming the x-axis (log scale shown here)
+#3. Transforming the x-axis (log scale shown here)
 
 data_for_viz%>%
     plot_ly(x =~var_1, 
@@ -379,7 +403,7 @@ data_for_viz%>%
 
 
 
-# Set the background color to #ebebeb and remove the vertical grid
+#4. Set the background color to #ebebeb and remove the vertical grid
 
 data_for_viz%>%
     plot_ly(x =~var_1, 
@@ -393,7 +417,7 @@ data_for_viz%>%
            paper_bgcolor="gray40")  # background color added here
 
 
-# Visualizing a fitted regression model 
+#5. Visualizing a fitted regression model 
 
 #model
 
@@ -416,4 +440,49 @@ data_for_viz%>%
     add_lines(y=~fitted(reg_model)) # line fitted here
 
 
+#6. Creating subplots
 
+# First scatterplot
+
+plot_A <- data_for_viz %>%
+    filter(Factor == "Factor_A") %>%
+    plot_ly(x = ~var_1, 
+            y = ~var_2) %>% 
+    add_markers(name = "Factor_A")
+
+# Second scatterplot
+
+plot_B <- data_for_viz %>%
+    filter(Factor == "Factor_B") %>%
+    plot_ly(x = ~var_1,
+            y = ~var_2) %>% 
+    add_markers(name = "Factor_B")
+
+# Create a facted scatterplot containing both the plots
+
+subplot(plot_A, 
+        plot_B, 
+        nrows =2,
+        shareX = TRUE,
+        shareY = TRUE)%>%
+    layout(title = "Factors A & B vs variables 1 & 2")
+
+
+#7. Creating a scatterplot matrix (of scatterplots)
+
+data_for_viz%>%
+    plot_ly(color=~Factor) %>%
+    add_trace(
+        type = 'splom',
+        dimensions = list(
+            list(label = 'variable_1', 
+                 values = ~var_1),
+            list(label = 'variable_2', 
+                 values = ~var_2),
+            list(label = 'variable_3', 
+                 values = ~var_3)
+        )
+    )%>%
+    style(diagonal = list(visible = FALSE),
+          showupperhalf = FALSE)%>%
+    layout(title = "Scatterplot matrix of variables 1-3")
