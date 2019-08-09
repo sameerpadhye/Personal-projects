@@ -486,3 +486,28 @@ data_for_viz%>%
     style(diagonal = list(visible = FALSE),
           showupperhalf = FALSE)%>%
     layout(title = "Scatterplot matrix of variables 1-3")
+
+
+#8. adding a specific line in the graph
+
+data_for_viz %>%
+  filter(Factor == "Factor_A") %>%
+  plot_ly(x = ~var_1, 
+          y = ~var_2) %>% 
+  add_markers(name = "Factor_A") %>%
+  add_lines(x = c(70, 200), 
+            y = c(100,150)) %>%
+  layout(showlegend=FALSE)
+
+
+#9. reordering the factors using fct_reorder from forcats package based on a specific value
+
+data_for_viz %>%
+  plot_ly(x = ~fct_reorder(Factor,
+                           var_4),
+          y = ~var_2, 
+          color = ~Factor) %>%
+  add_bars()%>%
+  layout(title = 'Barchart',
+         xaxis = list(title = "Factors"),
+         yaxis = list(title = "variable 3"))
