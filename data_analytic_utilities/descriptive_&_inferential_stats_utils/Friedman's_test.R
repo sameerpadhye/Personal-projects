@@ -25,7 +25,7 @@ data_analysis<-read_excel(data_path,
 head(data_analysis,5)
 
 
-#For Friedman's test, we assume that the habitat_1 to habitat_3 is the same habitat with trait values (here Trait_1) taken at three different time points (hence Habitat_1,Habitat_2 and Habitat_3).
+#For Friedman's test, we assume that the Response_A to Response_C is at different time periods for the same specimens (specimen row numbers not given)
 
 
 #visualizing the data (data is inherently wide so its first converted into a long format)
