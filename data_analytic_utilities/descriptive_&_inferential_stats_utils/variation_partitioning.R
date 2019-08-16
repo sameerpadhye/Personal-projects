@@ -102,20 +102,54 @@ rda_spatial_final<-rda(hell_data ~ PCNM2 + PCNM3 + PCNM8 + PCNM1 + PCNM6 + PCNM4
 
 # Significant environmental and spatial variables obtained are then extracted into two separate datasets
 
+
+#Function to obtain the names of the variables selected after forward selection (input here would be the rda$call object)
+
+rda_names_extractor<-function(x){
+  
+  if(!require(tidyverse))install.packages('tidyverse')
+  library(tidyverse)
+  
+  name_vec<-as.character(x)%>%
+    paste(.,collapse = ",")%>%
+    str_split(.,"[~,]")%>%
+    unlist()%>%
+    str_subset(.,"\\+")%>%
+    gsub(" ","",.)%>%
+    sapply(.,strsplit,"\\+",
+           USE.NAMES = FALSE)%>%
+    unlist(.)
+  
+  return(name_vec)
+}
+
+
 #1. env variables
 
 rda_env_step.forward$call 
 
+#a. extraction by conventional method
+
 environ_final_data<-environ_data%>%
   dplyr::select(WatrCont,
-        Topo,
-        SubsDens,
-        Shrub,
-        Substrate)
+                Topo,
+                SubsDens,
+                Shrub,
+                Substrate)
+
+#b. extraction using the function
+
+env_var_final<-rda_names_extractor(rda_spatial_step.forward$call)
+
+environ_final_data<-environ_data%>%
+  select(., .dots =env_var_final)
+
 
 #2. Spatial data
 
 rda_spatial_step.forward$call
+
+#a. extraction by conventional method
 
 spatial_final_data<-pcnm_data%>%
   dplyr::select(PCNM4,
@@ -129,6 +163,13 @@ spatial_final_data<-pcnm_data%>%
                 PCNM23,
                 PCNM5)
 
+#b. extraction using the function
+
+spatial_var_final<-rda_names_extractor(rda_spatial_step.forward$call)
+
+spatial_final_data<-pcnm_data%>%
+  select(.,.dots=spatial_var_final)
+         
 
 # A variation partitoning algorithm is then run using these two groups along with the species composition
 
