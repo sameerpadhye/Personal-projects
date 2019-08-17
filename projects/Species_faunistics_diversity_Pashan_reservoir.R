@@ -603,3 +603,54 @@ data_permanova2<-adonis(pashan_fun_indices%>%
 #PERMANOVA results
 
 data_permanova2$aov.tab
+
+
+#############Environmental data comparison###################################
+
+
+#Importing the environmental data
+
+pashan_env_data<-read_excel(data_path,
+                            sheet=4)%>%
+    mutate_if(is.character,
+              as.factor)
+
+#View the data
+
+str(pashan_env_data)
+
+
+# Converting the wide dataset to a long dataframe
+
+pashan_envdata_long<-pashan_env_data%>%
+    dplyr::rename('salinity'='sal')%>%
+    gather(env_variables,
+           values,
+           pH,
+           temperature,
+           salinity)
+
+# Re-order the collection period groups for based on collection periods (i.e. pre and post respectivley)
+
+pashan_envdata_long$collection_grp<-fct_relevel(pashan_envdata_long$collection_grp,"pre")
+
+
+#Data summary for the two collection periods
+
+pashan_envdata_summ<-pashan_envdata_long%>%
+    group_by(collection_grp,
+             env_variables)%>%
+    summarise(mean_val=mean(values),
+              median_val=median(values),
+              std_dev=sd(values))
+
+
+#Plots for visualizing the environmental data
+
+pashan_envdata_long%>%
+    ggplot(aes(collection_grp,
+               values))+
+    geom_boxplot(fill='orange')+
+    facet_wrap(~env_variables,
+               scales = 'free')+
+    theme_bw(base_size = 14)
