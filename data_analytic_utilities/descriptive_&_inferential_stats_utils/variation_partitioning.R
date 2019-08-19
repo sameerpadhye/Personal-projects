@@ -217,3 +217,50 @@ anova.cca(rda(hell_data,
               spatial_final_data,
               environ_final_data),
           step=1000)
+
+
+##RDA plots
+
+# Plot of species vs Environment RDA (rda_env_final)
+
+#base plot with all information
+
+plot(rda_env_final,
+     main="RDA plot")
+
+
+#Screeplot of RDA axes
+
+screeplot(rda_env_final)
+
+
+#Only sites (points)
+
+plot(rda_env_final,
+     display=c("sites"),
+     type = c("points"),
+     main="RDA plot") # type = c("text") can also be used; default is both
+
+#Adding text
+
+text(rda_env_final,
+     cex = 0.8,
+     col = "forestgreen")
+
+
+#Only species (points)
+
+plot(rda_env_final,
+     display=c("species"),
+     main="RDA plot")
+
+#Text can be added similarly as above
+
+
+#Adding Legend
+
+# legend("topright", # place to put the legend
+#        legend = mite$some_variable, # the contents of the legend 
+#        col = colors,  # colors for the legend. Please note that the colors given here should be the same as provided in the main text 
+#        pch = 21, # shape
+#        pt.bg = colors) # same set of colors provided above
