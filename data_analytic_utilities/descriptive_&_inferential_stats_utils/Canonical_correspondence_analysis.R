@@ -84,6 +84,7 @@ anova.cca(CCA_final,
 anova.cca(CCA_final, 
           by="axis")
 
+
 ##CCA plots
 
 # Plot of species vs Environment RDA (rda_env_final)
@@ -121,4 +122,6 @@ plot(CCA_final,
      main="CCA plot")
 
 #Text can be added similarly as above
+
+#Other plot arguments can be modified as per user specifications
 
