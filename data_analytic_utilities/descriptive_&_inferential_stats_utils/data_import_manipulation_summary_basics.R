@@ -259,6 +259,12 @@ sd(var_3,na.rm = T)
 #range
 range(var_4)
 
+#minimum value
+min(var_2)
+
+#maximum value
+max(var_4)
+
 #median
 median(var_1,na.rm = T)
 
@@ -292,3 +298,58 @@ describeBy(subset(data_analysis,
            digits = 3)  # rounding the digits in the output
 
 # here the attach and detach functions would be helpful 
+
+
+##Using 'dplyr' for basic data manipulation
+# dplyr is a packge from the tidyverse collection of libraries which is mainly used in manipulation of dataframes. For more information on Tidyverse, please check the following website https://www.tidyverse.org/
+
+if(!require(tidyverse))install.packages('tidyverse') 
+
+# Using dplyr is very convenient and data manipulation becomes easier as compared to base R in many instances
+
+# Pipes (%>%) are commonly used in tidyverse to make the code more readable and easier to interpret. The symbol implies the word 'then'. It will used for all dplyr statements and explained in bried
+
+#1. Select statement: Used for selecting columns of the dataset
+
+#normal select
+
+data_analysis_2<- data_analysis%>% # meaning use the original dataframe named data_analysis and then
+    dplyr::select(Factor,  # selecting the requisite columns by name
+                  var_1,
+                  var_3)
+
+# conditional select 1: select can also be used to select specific columns based on certain conditions
+
+data_analysis_3<-data_analysis%>%
+    dplyr::select_if(is.numeric)  # here it means select the data only if its numeric (is.numeric)
+
+# conditional select 2: select by stating specific position
+
+data_analysis_4<-data_analysis%>%
+    dplyr::select_at(vars(contains('Fact'))) # here the column is selected based on the name (even if only a part of the word is mentioned, select will still pick up the right column unless the part of the word is not unique i.e. suppose the dataset contains two columns having names Factor_1 and Factor_2, using partial matching like 'Fact' will select both the columns)
+
+
+#2. Filter: Used for selecting specific rows
+
+#filter with one condition
+
+data_analysis_5<-data_analysis%>%
+    dplyr::filter(Factor=='Factor_A')  # here the only the rows (and all columns) corresponding to Factor_A will be filtered out
+
+data_analysis_5
+
+#filtering with multiple conditions 
+
+data_analysis_6<-data_analysis%>%
+    dplyr::filter(Factor=='Factor_B', var_3 > 500) # here the rows with factor B and var_3 having values more than 500 will be filtered
+
+#checking if the filter was right
+
+min(data_analysis_6$var_3)
+
+
+#Filtering with numerical condition
+
+data_analysis_7<-data_analysis%>%
+    dplyr::filter(var_4 > mean(var_4, 
+                               na.rm = TRUE)) # here only the rows having values more than the mean of var_4 will be filtered and returned
