@@ -353,3 +353,76 @@ min(data_analysis_6$var_3)
 data_analysis_7<-data_analysis%>%
     dplyr::filter(var_4 > mean(var_4, 
                                na.rm = TRUE)) # here only the rows having values more than the mean of var_4 will be filtered and returned
+
+
+#3. Group by and Summarize
+
+#These two functions can be used in combination to summarize data based on certain grouping factors.
+
+data_analysis_8<-data_analysis%>%
+    dplyr::group_by(Factor)%>% # grouping column
+    dplyr::summarise(mean=mean(var_1,na.rm = T),   # different summarizing functions
+                     median=median(var_1,na.rm = T),
+                     std_dev=sd(var_1,na.rm = T))
+
+#Viewing the result
+
+View(data_analysis_8)
+
+
+#4. Mutate
+
+#This function is used to generate new columns in the original dataframe
+
+data_analysis_9<-data_analysis%>%
+    dplyr::mutate(new_var_1=(mean(var_1) - var_1), # defining new columns
+                  new_var_2=(max(var_2)-var_2))
+
+# Exploring the result
+
+View(data_analysis_9)
+
+
+# Conditional mutate (These mutate statements do not generate new columns but modify the existing ones)
+
+#a.
+
+data_analysis_10<-data_analysis%>%
+    dplyr::mutate_if(is.factor,   # are there any factor columns
+                     as.character)  # if there are, convert it to character
+
+#checking whether the data type has changed or not
+
+class(data_analysis_10$Factor)
+
+#b. 
+
+data_analysis_11<-data_analysis%>%
+    dplyr::mutate_at(vars(contains('var_1')),log10) # find the column var_1 and convert it to a log10 value
+
+#View the result
+
+View(data_analysis_11)
+
+
+# Long and wide dataframe (conversion of wide to long)
+
+# Two types of dataframes are used in many analyses in R (depending on the type of library used)
+
+#Wide dataframe contains a unique set of observations for each row. 
+
+# Example
+data_analysis[1,]
+
+# This wide dataframe can be converted to a long dataframe where the observations are stacked. This conversion can be done using 'gather' function from the 'tidyr' package from tidyverse
+
+data_analysis_long<-data_analysis%>%
+    tidyr::gather(variable_types,  # a name for the new column where the column names (which are needed) of the wide dataset will be placed
+                  values,             # second column where the values of the corresponding columns will be placed
+                  var_1:var_4)   # the columns which need conversion from wide to long
+
+#Exploring the long dataset
+
+View(data_analysis_long)
+
+data_analysis_long[1,]
