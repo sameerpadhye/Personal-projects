@@ -54,6 +54,13 @@ data_analysis<-readxl::read_excel(data_path_xl,
 data_analysis_choose<-read_excel(file.choose())
 
 
+# The file can also be downloaded and subsequently used in the table. Here, the file is downloaded using the 'fread' function in data.table library
+
+if(!require(data.table))install.packages('data.table') 
+
+data_file <- data.table::fread('http://www.xyz.com/datasets/data_file.csv') #provide the path
+
+
 # Viewing the data
 
 #Data imported via read_excel will be used for further work
@@ -300,6 +307,25 @@ describeBy(subset(data_analysis,
 # here the attach and detach functions would be helpful 
 
 
+# Aggregating data using a factor (this is used to aggregate row values for the categories present in the data)
+
+data_agg_factor<-aggregate(subset(data_analysis,
+                                  select = var_1:var_4), # Numerical data selected
+                           by = list(data_analysis$Factor), # the category for which function is to be used
+                           FUN = mean) # function to be used
+
+
+#Using tapply for aggregating data
+
+attach(data_analysis)
+
+tapply(var_1,
+       Factor,
+       mean)
+
+detach(data_analysis)
+
+
 ##Using 'dplyr' for basic data manipulation
 # dplyr is a packge from the tidyverse collection of libraries which is mainly used in manipulation of dataframes. For more information on Tidyverse, please check the following website https://www.tidyverse.org/
 
@@ -426,3 +452,44 @@ data_analysis_long<-data_analysis%>%
 View(data_analysis_long)
 
 data_analysis_long[1,]
+
+
+#Merging two dataframes. 
+
+#Two dataframes can be merged based on common column between the two datasets. The names of the two columns could be different in the dataframes but the type and sequence of the rows should be identical for a correct match. Here data_analysis_9 and data_analysis_11 are used
+
+
+data_analysis_merged<-merge(data_analysis_9, 
+                            data_analysis_11,
+                            by='Factor')
+
+#View result
+
+View(data_analysis_merged)
+
+# Joins from dplyr package can also be used for joining datasets and its code will be added soon
+
+## Matching values between columns two dataframes
+
+#Checking if two columns have any matching values
+
+data_analysis_9$var_3 %in% data_analysis_11$var_1
+
+#OR
+
+# using Intersect
+
+intersect(data_analysis_9$var_3,
+          data_analysis_11$var_1)
+
+
+#Unique value in one of the columns
+
+setdiff(data_analysis_9$var_3,
+        data_analysis_11$var_1)
+
+
+## Exporting the result as a csv (file will be exported to the working directory)
+
+write.csv(data_analysis_9,          # the dataset to be exported
+          "data_analysis_9.csv")   # name of the file to be exported
