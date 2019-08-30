@@ -431,6 +431,40 @@ data_analysis_11<-data_analysis%>%
 View(data_analysis_11)
 
 
+#Arranging the dataframe based on values of a particular variable of the dataset. Arrange function in dplyr is used for this purpose. The dataset is arranged as per the ascending values of the variable
+
+# Arrange in ascending (default) way
+
+data_analysis%>%
+    dplyr::arrange(var_1)
+
+# Arrange in a descending way
+
+data_analysis%>%
+    dplyr::arrange(desc(var_1))
+
+
+# Selecting the rows of the dataframe using slice (based on position)
+
+data_analysis_slice<-data_analysis%>%
+    dplyr::slice(.,1:20)
+
+#View the result
+
+View(data_analysis_slice)
+
+
+# Selecting the top 'n' observations of the dataframe after arranging or grouping the dataset
+
+data_analysis_topn<-data_analysis%>%
+    dplyr::arrange(var_2)%>% # arrange the result
+    dplyr::top_n(15)   # select the top 15 observations
+
+#View the result
+
+View(data_analysis_topn)
+
+
 # Long and wide dataframe (conversion of wide to long)
 
 # Two types of dataframes are used in many analyses in R (depending on the type of library used)
