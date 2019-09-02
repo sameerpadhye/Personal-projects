@@ -46,6 +46,7 @@ data_analysis_choose<-read.csv(file.choose())
 
 if(!require(readxl))install.packages('readxl') 
 library(readxl)
+
 data_analysis<-readxl::read_excel(data_path_xl,
                                   sheet=1) # the sheet to be imported
 
@@ -463,6 +464,52 @@ data_analysis_topn<-data_analysis%>%
 #View the result
 
 View(data_analysis_topn)
+
+
+# Counting observations based on factors (frequencies of each category)
+
+data_analysis_counts<-data_analysis%>%
+    group_by(Factor)%>%
+    summarise(counts=n())
+
+#View result
+
+data_analysis_counts
+
+
+#Counting distinct observations of values (here the variable can be categorical or continous)
+
+data_analysis%>%
+    summarise(counts=n_distinct(var_3))
+
+
+#Categorizing data based on a condition 
+
+data_analysis_ifelse<-data_analysis %>%
+    dplyr::mutate(new_col=if_else(Factor == "Factor_A",  #if factor is factor A
+                                  "Correct",             # then place correct
+                                  "Otherwise"))             # else place otherwise in the new column 'new_column'
+
+#View result
+
+data_analysis_ifelse
+
+
+#Extracting a single variable (column) from the data
+
+data_analysis_pull<-data_analysis%>%
+    dplyr::pull(var_3)
+
+#View result
+
+data_analysis_pull
+
+
+# Selecting specific elements  depending on position 
+
+print(data_analysis%>%
+          dplyr::pull(var_1)%>%
+          dplyr::nth(5))
 
 
 # Long and wide dataframe (conversion of wide to long)
