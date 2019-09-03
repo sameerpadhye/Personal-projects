@@ -2,17 +2,17 @@
 
 #Libraries used
 
-library(tidyverse)
-library(vegan)
-library(psych)
-library(FSA)
-library(ggpubr)
-library(ggfortify)
-library(car)
+require(tidyverse)
+require(vegan)
+require(psych)
+require(FSA)
+require(ggpubr)
+require(ggfortify)
+require(car)
 
 #Importing data (the data file is assumed to be in the working directory)
 
-morphometry_file_path<-paste0(getwd(),"/morphometry_data.csv")
+morphometry_file_path<-"C:/Users/samee/Desktop/R data/sample_datasets/morphometry_data.csv"
 
 morphometry_raw_data<-read.csv(morphometry_file_path)
 
@@ -74,7 +74,7 @@ ggboxplot(morphometry_data,
 
 #Plotting interactive plot with plotly
 
-library(plotly)
+require(plotly)
 
 #boxplot with jitter
 
@@ -91,9 +91,9 @@ morphometry_data%>%
 ## Using permutation ANOVA for inferring statistical significance
 
 
-#Library for permutation ANOVA
+#require for permutation ANOVA
 
-library (lmPerm)
+require (lmPerm)
 
 
 #Anova model
@@ -158,9 +158,69 @@ autoplot(pca_morpho_analysis,
 
 ##Scree plot for PCA (used to visualize the contribution of each eigenvector in explaining the variation)
 
-library(factoextra)
+require(factoextra)
 
 fviz_eig(pca_morpho_analysis)
 
-############################END########################################
 
+## Performing MANOVA to test whether there is a difference between traits and between different localities
+
+#Performing MANOVA
+
+data_manova<-manova(cbind(longitudo_corporis,
+                          longitudo_capitis,
+                          longitudo_carapacis,
+                          Altitudo_capitis,
+                          Altitudo_carapacis
+) ~ site, 
+data = morphometry_raw_data)
+
+#Exploring the results of MANOVA
+
+summary(data_manova)
+
+
+#ANOVA's of individual response variables to the grouping variable (posthoc test)
+
+post_aov_data<-summary.aov(data_manova)
+
+#Exploring the results of MANOVA
+
+post_aov_data
+
+
+# Visualizing the differences in trait values accross the sites
+
+require(plotrix)
+
+data_plot<-morphometry_raw_data%>%
+    gather(traits,
+           values,
+           longitudo_corporis:Altitudo_carapacis)%>%
+    mutate_at(vars(contains('traits')),
+              as.factor)%>%
+    group_by(site,
+             traits)%>%
+    summarize(means=mean(values,
+                         na.rm = T),
+              std_error=plotrix::std.error(values,
+                                           na.rm = T))%>%
+    ggplot(aes(site,
+               means,
+               group=site))+
+    geom_point(color='steelblue',
+               size=4,
+               position=position_dodge(0.5))+
+    geom_errorbar(aes(ymin=means-std_error,
+                      ymax=means+std_error),
+                  width=.2,
+                  position=position_dodge(0.5))+
+    theme_bw(base_size = 18)+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1),
+          axis.title.x = element_blank())+
+    facet_wrap(~traits,
+               scales = 'free')+
+    ylab('Mean')
+
+data_plot 
