@@ -12,7 +12,7 @@ require(car)
 
 #Importing data (the data file is assumed to be in the working directory)
 
-morphometry_file_path<-"C:/Users/samee/Desktop/R data/sample_datasets/morphometry_data.csv"
+morphometry_file_path<-paste0(getwd(),'/morphometry_data.csv')
 
 morphometry_raw_data<-read.csv(morphometry_file_path)
 
@@ -72,6 +72,7 @@ ggboxplot(morphometry_data,
     xlab("Sites")+
     ylab("Ratio")
 
+
 #Plotting interactive plot with plotly
 
 require(plotly)
@@ -88,13 +89,10 @@ morphometry_data%>%
            axis = list(title = "Collection sites"),
            yaxis = list(title = "Value"))
 
-## Using permutation ANOVA for inferring statistical significance
 
-
-#require for permutation ANOVA
+## Using permutation ANOVA for inferring statistical significance (using lmPerm package)
 
 require (lmPerm)
-
 
 #Anova model
 
@@ -117,7 +115,7 @@ pca_morpho_analysis<- morphometry_raw_data%>%
     dplyr::select_if(is.numeric)%>%
     dplyr::select(-specimen.no)%>%# only numeric data should be selected
     data.frame(.)%>% # converted to dataframe since tibble is returned
-    prcomp(.,scale. = F) # scale is TRUE when column descriptors are of different scales (E.g. one column contains pH values while the second contains Temperature)
+    prcomp(.,scale. = T) # scale is TRUE when column descriptors are of different scales (E.g. one column contains pH values while the second contains Temperature)
 
 #extracting the PCA co-ordinates
 
@@ -163,7 +161,29 @@ require(factoextra)
 fviz_eig(pca_morpho_analysis)
 
 
-## Performing MANOVA to test whether there is a difference between traits and between different localities
+## Performing MANOVA to test whether there is a difference between traits and between different localities. The data are first normalized
+
+#Using caret package to normalize the values before analysis
+
+require(caret)
+
+#Selecting the data for analysis
+
+morpho_selected_data<-morphometry_raw_data%>%
+    dplyr::select(-specimen.no)
+
+
+#Create the parameters for transformation of the data 
+
+norm_indices<-morpho_selected_data%>%
+    preProcess(method = c("center", "scale"))
+
+
+#Transforming the data based on the parameters
+
+morpho_trans_data<-norm_indices%>%
+    predict(morpho_selected_data)
+
 
 #Performing MANOVA
 
@@ -173,7 +193,8 @@ data_manova<-manova(cbind(longitudo_corporis,
                           Altitudo_capitis,
                           Altitudo_carapacis
 ) ~ site, 
-data = morphometry_raw_data)
+data = morpho_trans_data)
+
 
 #Exploring the results of MANOVA
 
@@ -224,3 +245,37 @@ data_plot<-morphometry_raw_data%>%
     ylab('Mean')
 
 data_plot 
+
+
+#Performing Linear Discriminant Analysis (LDA) to check how the morphological traits separate out the different sites linearly. Data used for MANOVA will be used for LDA 
+
+
+#Performing Linear Discriminant Analysis
+
+library(MASS)
+
+lda_model <- lda(site~., 
+                 data = morpho_trans_data)
+lda_model
+
+
+#Visualizing the LDA results
+
+#Obtaining the data for visualization
+
+data_for_lda_viz <- cbind(morpho_trans_data['site'], # binding the 'site' category
+                          predict(lda_model)$x) # to the lda values of first 2 axes since the first they explain the most variation
+
+
+#Plot
+
+data_for_lda_viz%>%
+    ggplot(aes(LD1,
+               LD2,
+               color = site)) +
+    geom_point(size=5)+
+    theme_bw(base_size = 18)+
+    ggtitle("Linear Discriminant Analysis plot")
+
+
+# Prediction and accuracy section will be added soon #######################    
