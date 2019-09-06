@@ -278,4 +278,45 @@ data_for_lda_viz%>%
     ggtitle("Linear Discriminant Analysis plot")
 
 
-# Prediction and accuracy section will be added soon #######################    
+# Predictions based on LDA
+
+predict_lda<- predict(lda_model,
+                      morpho_trans_data)%>%
+    data.frame(.)
+
+#Exploring the results
+
+#1. Classes of predictors
+
+predict_lda$class
+
+#2. Linear discriminants (vectors)
+
+subset(predict_lda,
+       select=-c(class))
+
+
+# Testing the accuracy of the model 
+
+mean(predict_lda$class==morpho_trans_data$site)
+
+# OR
+
+#1. Obtain the dataframe
+
+obs_expec_class<-data.frame(observed=morpho_trans_data$site, 
+                            expected=predict_lda$class)
+
+#2. Explore the counts of observed vs expected (Optional)
+
+obs_expec_class %>%
+    count(expected, 
+          observed)
+
+#3. Test the accuracy 
+
+obs_expec_class %>%
+    summarize(score = mean(expected == observed))
+
+
+# This gives the value of how accurately the lda model predicts the classes of the data which in this case is 63% which isnt very high   
