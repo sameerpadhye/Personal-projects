@@ -658,6 +658,21 @@ data_analysis_scale2<-data_analysis%>%
 head(data_analysis_norm)
 
 
+#3. using caret package
+
+if(!require(caret))install.packages('caret') 
+
+data_analysis_scale3 <- data_analysis%>%
+    dplyr::select_if(is.numeric)%>%
+    caret::preProcess(., method=c("center", "scale"))%>%
+    predict(.,data_analysis%>%
+                dplyr::select_if(is.numeric))
+
+#View result
+
+head(data_analysis_scale3)
+
+
 ## Exporting the result as a csv (file will be exported to the working directory)
 
 write.csv(data_analysis_9,          # the dataset to be exported
