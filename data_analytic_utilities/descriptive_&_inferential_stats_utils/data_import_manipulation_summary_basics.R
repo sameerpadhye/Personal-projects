@@ -631,6 +631,33 @@ setdiff(data_analysis_9$var_3,
         data_analysis_11$var_1)
 
 
+#Normalizing the data (mean of 0 and standard deviation of 1)
+
+#1. base R
+
+data_analysis_scale1<-data_analysis%>%
+    dplyr::select_if(is.numeric)%>%
+    scale(.)
+
+# View result
+
+head(data_analysis_scale)
+
+
+#2. using BBmisc package
+
+if(!require(BBmisc))install.packages('BBmisc') 
+
+data_analysis_scale2<-data_analysis%>%
+    dplyr::select_if(is.numeric)%>%
+    BBmisc::normalize(.,method = 'standardize',# Type of normalization
+                      margin=2L)  # standardize by rows (1) or column (2)
+
+#View result
+
+head(data_analysis_norm)
+
+
 ## Exporting the result as a csv (file will be exported to the working directory)
 
 write.csv(data_analysis_9,          # the dataset to be exported
