@@ -1,1 +1,0 @@
-This folder contains R scripts exploring A. the basic data types and data structures in R and B. basics of data import, manipulation and summarization in R.
