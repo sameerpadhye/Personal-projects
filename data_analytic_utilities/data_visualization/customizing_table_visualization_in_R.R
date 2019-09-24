@@ -108,4 +108,53 @@ jtools::summ(reg_model,confint=TRUE)
 jtools::summ(reg_model,pvals=FALSE)
 
 
+## Using the package stargazer to export tables in doc file
+
+
+install.packages('stargazer')
+
+
+library(stargazer)
+
+
+# Table output as a doc file as html type of output
+
+
+stargazer(table_data,
+          type = "html",
+          out="table_data.doc")
+
+
+#Output the table as a doc file as text type of output
+
+
+stargazer(reg_model,
+          type="text",
+          out = "table2.doc")
+
+
+# Using the package sjPlot to export result tables (from correlation, regression etc.)
+
+
+install.packages('sjPlot')
+
+
+library(sjPlot)
+
+
+## Correlation table using sjPlot
+
+
+# Correlation of the table data
+
+
+correlation_analysis<-cor(table_data)
+
+
+# Exporting the correlation_analysis table in a doc file
+
+sjt.corr(correlation_analysis,
+         corr.method = "pearson",
+         file="sjt_corr_3.doc")
+
 ## WIP
