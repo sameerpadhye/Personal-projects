@@ -1,0 +1,620 @@
+---
+title: "Distribution_of_a_pantropical_species_complex"
+author: "Sameer Padhye"
+date: "6/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+# **Aim of the Project**
+
+The main objective of this work is to study the distributional peculiarities of a pantropical cryptic species complex of a freshwater crustacean, *Cyclestheria hislopi* Sars
+
+## Specific objectives:
+
+A. How similar/different are the localities w.r.t. some environmental and bioclimatic variables where this species is found.
+
+B. Explore the differences in the distribution with regards to a. different ecoregions and b. habitat types where the species has been reported.
+
+C. To visualize how unique/same the different localities are w.r.t the environment and bioclimatic variables
+
+D. If the localities do separate out in different patterns the next aim is to check whether there exists any spatial autocorrelation amongst the different environmental and biolcimatic variables.
+
+E. To check whether there is any significant and strong association of environmental and bioclimatic variables with the geographic distances between the localities.
+
+Libraries used
+
+```{r, echo=T,message=FALSE,warning=FALSE}
+
+library(tmap)
+library(raster)
+library(sp)
+library(rgdal)
+library(rasterVis)
+library(plotly)
+library(magrittr)
+library(ppcor)
+library(reshape2)
+library(pipeR)
+library(psych)
+library(readxl)
+library(ggpubr)
+library(ggfortify)
+library(vegan)
+library(adespatial)
+library(ape)
+library(fpc)
+library(data.table)
+library(tidyverse)
+```
+
+Obtaining and manipulating the GIS dataframe of the samples
+
+The locality data was obtained from literature and a dataframe was created in excel. This dataframe was then imported into R
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+c_hislopi_loc<-read_excel("C:/Data/Research data/Large Branchiopoda/Cyclestheria hislopi world distribution/C.hislopi localities.xlsx",
+                          sheet=1)%>%
+    mutate_at(vars(1:3),
+              as.factor)%>%
+    dplyr::select(Longitude,
+                  Latitude,
+                  everything())
+
+#Re-coding one of the factors
+
+c_hislopi_loc$Realm<-fct_recode(c_hislopi_loc$Realm,
+                                Neotropics="Neotropic")
+
+```
+
+Converting the data into a spatial object using sp package
+
+The GIS data was converted into a sp object for plotting
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+c.hislopi_points<-SpatialPointsDataFrame(coords = c_hislopi_loc[,c("Longitude","Latitude")],
+                                         data = c_hislopi_loc,
+                                         proj4string = CRS("+proj=longlat +datum=WGS84"))
+
+```
+
+Importing different spatial data 
+
+To explore the patterns in environmental and bioclimatic data, the data was first imported in R. 
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#1.Bioclim data
+
+bioclim<-raster::getData('worldclim', 
+                         var='bio', 
+                         res=2.5)
+
+#2. Altitude data
+
+alt<-raster("C:/Data/GIS_data/GIS_layers/alt_10m_bil/alt.gri")
+
+#3. Ecoregions data
+
+world_ecoreg<-readOGR("C:/Data/GIS_data/GIS_layers/Terrestrial ecoregions/tnc_terr_ecoregions.shp")
+proj4string(world_ecoreg)<- CRS("+proj=longlat +datum=WGS84")
+
+#4. Geochem data
+
+#file path
+
+asc_files<- "C:/Users/samee/Downloads/HWSD_RASTER/ISLSCP_SOILS_1DEG_1004/data"
+
+geochem_files<-list.files(asc_files,
+                          full.names = T,
+                          pattern = "0-30_1d.asc$")
+
+#Obtaining the names for columns
+
+geochem_colnames<-grep("^C.*/soil_",
+                       geochem_files,value=T) %>%
+    sub("^C.*/soil_", "", .) %>%
+    str_remove(., "0-30_1d.asc")
+
+```
+
+Environmental data for each locality was then extracted using the dataset imported above. Each type of data provides specific set of environmental information for every single locality
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#1. Geochem data
+
+geochem_data<-geochem_files%>%
+    purrr::map(raster)%>%
+    purrr::map(.,~raster::extract(.,c.hislopi_points))%>%
+    bind_cols(.)%>%
+    purrr::set_names(geochem_colnames)
+
+#2. Bioclim
+
+c.hislopi_bioclim<- raster::extract(bioclim,c.hislopi_points)
+
+#3. Altitude
+
+c.hislopi_alt<- raster::extract(alt,c.hislopi_points)
+
+#4. Ecoregions
+
+data_eco<-over(c.hislopi_points, world_ecoreg)
+
+eco_data.chislopi<- data_eco%>%
+    dplyr::select(ECO_NAME,
+                  ECODE_NAME,
+                  WWF_REALM2,
+                  WWF_MHTNAM)%>%
+    mutate_all(as.factor)%>%
+    droplevels(.)%>%
+    dplyr::rename("Realm"='WWF_REALM2',
+                  'ecoregion'="WWF_MHTNAM")
+
+```
+
+The extracted data are then combined to generate a single dataset. This would make data manipulation and analysis easier
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+C.hislopi_all.data<-c.hislopi_bioclim%>%
+    cbind(.,geochem_data)%>%
+    as.data.frame(.)%>%
+    dplyr::mutate(code=c_hislopi_loc$Codes,
+                  localities=c_hislopi_loc$Localities,
+                  country=c_hislopi_loc$Country,
+                  altitude=c.hislopi_alt,
+                  realm=eco_data.chislopi$Realm,
+                  ecoregions=eco_data.chislopi$ecoregion)%>%
+    dplyr::select(code,
+                  country,
+                  localities,
+                  everything())%>%
+    na.omit(.)%>%
+    filter(realm!='Palearctic')%>%
+    filter(realm!= 'Nearctic')%>%
+    droplevels(.)%>%
+    dplyr::select(-c("therm_cap0_",
+                     "therm_cap10_",
+                     "therm_cap100_",
+                     "therm_cap50_"))
+
+#write.csv(C.hislopi_all.data,'C.hislopi_all.data.csv')
+
+#Changing the column names of bioclim data as Temp and Prec (first 11 of temperature and remaining 8 of precpitation)    
+
+names(C.hislopi_all.data)[4:22]<-c(sprintf("Temp%d",seq=(1:11)),
+                                   sprintf("Prec%d",seq=(1:8)))
+
+head(C.hislopi_all.data,5)
+
+```
+
+### Exploratory data analysis and visualization
+
+1. The locality data as a sp object was then used for visualization of localities.For the mapping, a previously downloaded shapefile of the world was used.
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+# World shapefile
+
+world_shape<-readOGR("C:/Users/samee/Downloads/HWSD_RASTER/world_shapefile/ne_50m_admin_0_countries.shp")
+proj4string(world_shape)<- CRS("+proj=longlat +datum=WGS84")
+
+#plot
+
+tm_shape(world_shape)+
+    tm_borders()+
+    tm_fill(col='grey',
+            alpha = 0.3)+
+    tm_shape(c.hislopi_points)+
+    tm_symbols(size=0.4,
+               col="Realm", 
+               shape="Realm",
+               palette="Set1", 
+               legend.col.show = T,
+               legend.shape.show = FALSE)+
+    tm_grid(n.x=4,
+            n.y=4,
+            lwd=0.4,
+            alpha = 0.5,
+            col='grey70',
+            labels.size = 0.8)+
+    tm_compass(position = c(.75, .15), 
+               color.light = "grey90")+
+    tm_scale_bar(position=c("center", "bottom"))  
+
+```
+
+2. The distribution pattern of localities was assessed by checking where all the localities of the species were with respect to the different 'Realms' on Earth. The species occurred in almost all the tropical-subtropical realms
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+eco_reg.chislopi<-C.hislopi_all.data%>%
+    arrange(realm)%>%
+    count(realm,
+          ecoregions)%>%
+    dplyr::rename('counts'='n')%>%
+    mutate_at(vars(contains("counts")),
+              as.numeric)
+
+head(eco_reg.chislopi,5)
+
+```
+
+3. The distribution of the localities was then visualized based on the soil types. Localities in the Indo-Malay and Neotropic realms seemed to have the most diverse soil types  
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#data summary of soil texture
+
+chislopi_soil_summary<-C.hislopi_all.data%>%
+    dplyr::select(country,
+                  realm,
+                  texture)%>%
+    mutate_at(vars(contains('texture')),as.factor)%>%
+    mutate(texture_name=fct_recode(texture,
+                                   Loamy_sand='2',
+                                   Sandy_loam='3',
+                                   Loam='4',
+                                   Sandy_clay_loam='7',
+                                   Clay_loam='8',
+                                   Clay='12'))%>%
+    dplyr::group_by(realm)%>%
+    dplyr::count(realm,texture_name)
+
+head(chislopi_soil_summary,5)
+
+#Plot for above
+
+C.hislopi_all.data%>%
+    dplyr::select(country,
+                  realm,
+                  texture)%>%
+    mutate_at(vars(contains('texture')),
+              as.factor)%>%
+    mutate(texture_name=fct_recode(texture,
+                                   Loamy_sand='2',
+                                   Sandy_loam='3',
+                                   Loam='4',
+                                   Sandy_clay_loam='7',
+                                   Clay_loam='8',
+                                   Clay='12'))%>%
+    ggplot(aes(x=realm,
+               fill=texture_name))+
+    geom_bar(stat='count')+
+    scale_fill_brewer(palette = 'Dark2')+
+    # scale_fill_manual(values=c("forestgreen",
+    #                            "#999999", 
+    #                            "#E69F00",
+    #                            "#56B4E9",
+    #                            'red',
+    #                            'grey60'))+
+    theme_bw(base_size = 18)+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())+
+    xlab("Soil texture")+
+    ylab("Counts(Localities)")+
+    guides(fill=guide_legend(title="Realms"))
+
+```
+
+4.The maximum size in the animal was visualized based on the realms data obtained above. Tropical regions seemed to bigger sized individuals
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+c_hislopi_loc%>%
+    dplyr::select(Realm,
+                  Country,
+                  max_size)%>%
+    gather(size,
+           values,
+           max_size)%>%
+    na.omit(.)%>%
+    mutate_at(vars(contains('size')),
+              as.factor)%>%
+    ggplot(aes(Realm,
+               values))+
+    #geom_boxplot(fill="grey",alpha=0.3)+
+    geom_point(size=8,
+               pch=21,
+               color="black",
+               fill="orange")+
+    theme_bw(base_size = 18)+
+    theme(panel.grid.major = element_blank(),                                      panel.grid.minor = element_blank())+
+    ylab('Max size (mm)') 
+
+```
+
+5. Species occurrence was visualized against the type of habitat it was reported from. This species occurred in almost all types of aquatic habitats but preferred permanent water bodies
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#data for visualization
+
+habitat_types_chislop<-c_hislopi_loc%>%
+    mutate_at(vars(contains('Habita')),as.factor)%>%
+    group_by(Habitat)%>%
+   # na.omit(.)%>%
+    tally(.)
+
+# table(c_hislopi_loc$Realm,
+#       c_hislopi_loc$Habitat)
+# get relative proportions
+
+#Changing the case of the first letter of habitat types
+
+habitat_types_chislop$Habitat<-str_to_title(habitat_types_chislop$Habitat)
+
+#Re-ordering the factors based on the counts
+
+habitat_types_chislop$Habitat<-fct_reorder(habitat_types_chislop$Habitat, 
+                                           -habitat_types_chislop$n) 
+
+habitat_types_chislop$Habitat<-dplyr::recode(habitat_types_chislop$Habitat, Paddy = "Paddy_field")
+
+#Barplot for visualization
+
+habitat_types_chislop%>%
+    na.omit(.)%>%
+    dplyr::filter(Habitat!='Multiple_habitats')%>%
+    dplyr::filter(Habitat!='Rainforest')%>%
+    ggplot(aes(x=Habitat,y=n))+
+    geom_bar(stat = 'identity',
+             fill = 'orange',
+             col='black')+
+    theme_bw(base_size = 22)+
+    theme(axis.text.x = element_text(angle = 90, 
+                                     hjust = 1),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())+
+    ylab("Number of localities")+
+    xlab("Habitat types")+
+    ggtitle(label=expression('Habitatwise Occurrence of'~italic(C.hislopi)))
+
+
+
+
+
+
+```
+
+# Data explorationg using Principal Component Analysis (PCA)
+
+In order to assess how the species localities varied based on the environment, a PCA was performed using the environmental data of the localities extracted above.
+
+Before a PCA could be carried out, collinearity if/any between the environmental variables was checked. It seemed there were many variables which had a high collinearity
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+chislopi_collinearity<-C.hislopi_all.data%>%
+    select_if(is.numeric)%>%
+    as.matrix(.)%>%
+    cor(.,method = "spearman")
+
+## Removing highly correlated variables using caret package
+
+require(caret)
+
+#Index for selecting high correlated variables
+
+index_selection<-findCorrelation(chislopi_collinearity,
+                                 cutoff = 0.65)%>%
+    sort(.)
+
+#Obtaining the variable names after removing the highly correlated variables
+
+final_env_var_chislop<-chislopi_collinearity[,-c(index_selection)]%>%
+    data.frame(.)%>%
+    mutate_if(is.numeric,
+              round, 3)%>%
+    colnames(.)
+
+# The v
+final_env_var_chislop
+
+
+# tmp <- chislopi_collinearity
+# tmp[upper.tri(tmp)] <- 0
+# diag(tmp) <- 0
+# index<-apply(tmp,2,function(x) any(x > 0.65))
+# data.new <- chislopi_collinearity[,!index]%>%
+#     colnames(.)
+# View(data.new)
+
+
+```
+
+Using the variables selected above, a PCA was carried out to visualize the association of environmental variables of the localities. All regions seemed to differ based on the environment. Indo-Malay region was characterized by higher precipitation and temperature variables.
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#selecting the variables having pairwise collinearity less than 0.6
+
+pca_c.hislopi <- C.hislopi_all.data%>%
+    dplyr::select(c(final_env_var_chislop))%>%
+    prcomp(.,scale. = T)
+
+
+#extracting the PCA co-ordinates of sites 
+
+pca_coord_chislopi<-pca_c.hislopi$x
+
+#extracting PCA vector values of the first two axes
+
+pca.vectors.chislopi<-pca_c.hislopi$rotation[,c(1,2)]
+
+#write.csv(pca.vectors.chislopi,'pca_chislopi_vectors.csv')
+
+#plot for PCA
+
+autoplot(pca_c.hislopi, 
+         scale = 0, 
+         data = C.hislopi_all.data, 
+         colour='realm',
+         label=T,
+         label.label = "country",
+         size = 5, 
+         shape='realm',
+         frame=T,
+         frame.colour = 'realm',
+         loadings = TRUE, 
+         loadings.colour = 'black', 
+         loadings.label = TRUE, 
+         loadings.label.size = 4, 
+         loadings.label.hjust = 0.5, 
+         loadings.label.vjust = 1.2)+
+    theme_bw(base_size = 18)+
+    scale_color_manual(values=c("orange",
+                                'forestgreen',
+                                "blue",
+                                "grey50",
+                                "black"))+
+    scale_size_manual(values =2)+
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+#b. Scree plot for PCA
+
+library(factoextra)
+
+fviz_eig(pca_c.hislopi)
+
+```
+
+### Inferential statistical analysis
+
+1. Since the PCA showed that there were patterns in environment based on different realms, a PERMANOVA was carried out to assess the significance in differences between the different bioclimatic and geochemical variables of different realms. The same variables selected for PCA were used for this analysis as well.
+It was seen that the differences in the environment were significant and from the posthoc tests it seemed that Afrotropical region was different from the rest of the realms
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+# Since Palearctic and Nearctic realm has only one locality, it has been removed for PERMANOVA)
+
+#Getting the data
+
+chislopi_permanova.data<-C.hislopi_all.data%>%
+    dplyr::select(realm,
+                  c(final_env_var_chislop))%>%
+    #mutate_if(is.numeric,log1p)%>%
+    na.omit(.)
+
+# checking multivariate spread (condition for permanova) for the cladoceran data
+
+#converting it to a distance object
+
+chislopi_beta<-vegdist(subset(chislopi_permanova.data,select=-c(realm)), 
+                       method = "gower",
+                       binary = T,
+                       na.rm = T)
+
+#Beta dispersion test to check homogeneity of spread
+
+chislopi_betadis<-betadisper(chislopi_beta, 
+                             chislopi_permanova.data$realm)
+
+anova(chislopi_betadis)
+
+#permutation test (additional) to test the siginificance
+
+permutest(chislopi_betadis, 
+          pairwise = TRUE)
+
+#PERMANOVA
+
+chislopi_permanova<-adonis(subset(chislopi_permanova.data,select=-c(realm)) ~ realm,
+                           data = chislopi_permanova.data, 
+                           permutations = 5000, 
+                           method = "gower")
+
+#PERMANOVA results
+
+chislopi_permanova$aov.tab
+
+```
+
+Finally, to check if there was any significant association between the distance between the localities and the environment, a Spatial autocorrelation (Moran's I) of environmental variables and spatial data points was performed using the variables used for PCA. The results showed that environment was significantly associated with the distance suggesting a relationship between the two
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#Selecting the numerical data for using in Moran's I
+
+chislop_data_moran<-C.hislopi_all.data%>%
+    dplyr::select_if(is.numeric)
+
+#Dataset with latitude and longitude values for Moran's I calculation
+
+C.hislopi_moran_data<-c.hislopi_bioclim%>%
+    cbind(.,geochem_data)%>%
+    as.data.frame(.)%>%
+    dplyr::mutate(code=c_hislopi_loc$Codes,
+                  localities=c_hislopi_loc$Localities,
+                  country=c_hislopi_loc$Country,
+                  altitude=c.hislopi_alt,
+                  realm=eco_data.chislopi$Realm,
+                  long=c_hislopi_loc$Longitude,
+                  lat=c_hislopi_loc$Latitude,
+                  ecoregions=eco_data.chislopi$ecoregion)%>%
+    dplyr::select(code,
+                  country,
+                  localities,
+                  everything())%>%
+    na.omit(.)%>%
+    filter(realm!='Palearctic')%>%
+    filter(realm!= 'Nearctic')%>%
+    droplevels(.)%>%
+    dplyr::select(-c("therm_cap0_",
+                     "therm_cap10_",
+                     "therm_cap100_",
+                     "therm_cap50_"))
+
+
+chislop.dists <- cbind(C.hislopi_moran_data$long ,C.hislopi_moran_data$lat)%>%
+    dist(.)%>%
+        as.matrix(.)
+
+#Inverse of the distance
+
+chislop.dists.inv <- 1/chislop.dists
+
+#Converting the diagonal values to 0
+
+diag(chislop.dists.inv) <- 0
+
+# Changing the Inf values to 0 for easy use in calculation of Moran's I
+
+chislop.dists.inv[is.infinite(chislop.dists.inv)] <- 0
+
+#Calculating the Moran's I for the selected data (one environmental variable at a time)
+
+all_moran_values<-apply(chislop_data_moran[,-c(34,35)],2,
+                        Moran.I,
+                        chislop.dists.inv,
+                        na.rm = TRUE)%>%
+    bind_rows(.)%>%
+    mutate(names=colnames(chislop_data_moran[,-c(34,35)]))%>%
+    column_to_rownames(.,'names')
+
+#Exploring the Moran values
+
+all_moran_values%>%
+    rownames_to_column(.)%>%
+    dplyr::filter(p.value < 0.001)%>%
+    dplyr::select('rowname','p.value')
+              
+    
+
+
+```
+
+The html file has been uploaded on RPubs (http://rpubs.com/sameerpadhye/531656)
