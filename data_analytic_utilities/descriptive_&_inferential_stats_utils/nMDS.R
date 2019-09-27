@@ -39,16 +39,26 @@ data_nmds<-vegan::metaMDS(data_analysis%>%
 
 stressplot(data_nmds)
 
+#goodness of fit for each of the locality points
+
+goodness(data_nmds)
+
 
 # nMDS plot
 
-# to obtain the number of observations per Groups factor
+# Defining colors and symbols (vectors) based on the groups in the dataset for better visualization
 
-table(data_analysis$Groups)['A']
+# Finding the levels
 
-table(data_analysis$Groups)['B']
+levels(data_analysis$Groups)
 
-table(data_analysis$Groups)['C']
+# Defining the colors based on the levels
+
+color_vector<-c("forestgreen","steelblue","grey20")
+
+# Defining the symbols based on the levels
+
+symbol_vectors<-c(21,21,22)
 
 
 # NMDS plot
@@ -58,14 +68,56 @@ table(data_analysis$Groups)['C']
 ordiplot(data_nmds,
          type="n")
 
-#2. species data
+#2. sites data
+
+# Plotting the sites data using points function and adding color and symbols based on the groups
+
+points(data_nmds,
+       display = "sites",
+       col = "black",
+       pch = symbol_vectors[data_analysis$Groups],
+       bg = color_vector[data_analysis$Groups],
+       cex=1.4)
+
+
+# Plotting the sites data using orditorp function and adding color and text based on the groups
 
 orditorp(data_nmds,
-         display="species",
-         col="red",
-         air=0.01)
+         display="sites",
+         cex=1,
+         air=0.5,
+         col = color_vector[data_analysis$Groups]
+)
 
-#3. sites data
+#3. convex hulls
+
+#Ordihull type 1
+
+# ordihull(data_nmds,
+#          groups=data_analysis$Groups,
+#          draw="polygon",
+#          col=color_vector,
+#          label=T)
+
+#Ordihull type 2 (adapted from http://rpubs.com/CPEL/NMDS)
+
+ordihull(
+    data_nmds,
+    groups=data_analysis$Groups,
+    display = "sites",
+    draw = c("polygon"),
+    col = NULL,
+    border = color_vector,
+    lty = c(1, 2, 3),
+    lwd = 2.5,
+    label = TRUE
+)
+
+#Adding title
+
+title("Non metric dimensional sclaing")
+
+#4. sites data
 
 orditorp(data_nmds,
          display="sites",
@@ -77,14 +129,6 @@ orditorp(data_nmds,
                    table(data_analysis$Groups)['B']),
                rep("orange",
                    table(data_analysis$Groups)['C'])))
-
-#4. convex hulls
-
-ordihull(data_nmds,
-         groups=data_analysis$Groups,
-         draw="polygon",
-         col="grey50",
-         label=F)
 
 
 # Visualization using ggplot2 (adapted from https://chrischizinski.github.io/rstats/vegan-ggplot2/)
