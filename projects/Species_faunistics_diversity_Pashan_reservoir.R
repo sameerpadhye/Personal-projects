@@ -327,43 +327,80 @@ pashan_nmds<-metaMDS(pashan_nmds_data%>%
 
 stressplot(pashan_nmds)
 
+#goodness of fit for both of the collection periods
+
+goodness(pashan_nmds)
 
 # nMDS plot
 
 # to obtain the number of observations of pre and post period respectivley
 
-table(pashan_nmds_data$collection_grp)['pre']
+table(pashan_nmds_data$collection_grp)
 
-table(pashan_nmds_data$collection_grp)['post']
+# Defining the colors based on the levels
+
+color_vector<-c("forestgreen","grey20")
+
+# Defining the symbols based on the levels
+
+symbol_vectors<-c(21,22)
+
 
 #plot
 
-#blank plot
+#1. blank plot
+
 ordiplot(pashan_nmds,
          type="n")
 
-#species data
-orditorp(pashan_nmds,
-         display="species",
-         col="red",
-         air=0.01)
+#2. sites data
 
-#sites data
+# Plotting the sites data using points function and adding color and symbols based on the groups
+
+#points
+
+points(pashan_nmds,
+       display = "sites",
+       col = "black",
+       pch = symbol_vectors[pashan_nmds_data$collection_grp],
+       bg = color_vector[pashan_nmds_data$collection_grp],
+       cex=1.4)
+
+#names
+
 orditorp(pashan_nmds,
          display="sites",
+         cex=1,
+         air=0.5,
+         col = color_vector[pashan_nmds_data$collection_grp]
+)
+
+# Hulls for the two collection periods
+
+ordihull(
+    pashan_nmds,
+    groups=pashan_nmds_data$collection_grp,
+    display = "sites",
+    draw = c("polygon"),
+    col = NULL,
+    border = color_vector,
+    lty = c(1, 2),
+    lwd = 2.5,
+    label = TRUE
+)
+
+#Adding title
+
+title("nMDS Pashan Plantkon")
+
+#4. species data
+
+orditorp(pashan_nmds,
+         display="species",
          cex=0.9,
          air=0.01,
-         col=c(rep("steelblue",
-                   table(pashan_nmds_data$collection_grp)['pre']),
-               rep("forestgreen",
-                   table(pashan_nmds_data$collection_grp)['post'])))
-
-#convex hulls
-# ordihull(pashan_nmds,
-#          groups=pashan_nmds_data$collection_grp,
-#          draw="polygon",
-#          col="grey50",
-#          label=F)
+         col= "black"
+)
 
 
 ## Using PERMANOVA to check whether the differences in the species communities in the pre and post beautificationp periods are significant or not. The modified dataset used for nmds is used here as well
