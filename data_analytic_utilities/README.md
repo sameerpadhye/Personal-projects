@@ -1,1 +1,1 @@
-The folder contains R scripts for a. various univariate and multivariate statistical techniques, b. Biodiversity and Ecological data analyses, c. text analytics, d. Spatial data analysis and visualization, e. using SQL in R
+The folder contains R scripts for a. various univariate and multivariate statistical techniques, b. Biodiversity and Ecological data analyses, c. text analytics, d. Spatial data analysis and visualization and e. using SQL in R. Sample data for most of these analyses is available in the sample_datasets folder
