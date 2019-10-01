@@ -1,1 +1,1 @@
-The folder contains R code for various univariate and multivariate statistical techniques used commonly in ecological and biodiversity research
+The folder contains R scripts for a. various univariate and multivariate statistical techniques, b. Biodiversity and Ecological data analyses, c. text analytics, d. Spatial data analysis and visualization, e. using SQL in R
