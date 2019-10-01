@@ -1,0 +1,1 @@
+This folder contains scripts for different data types of data analyses for Biodiversity and Ecological data
