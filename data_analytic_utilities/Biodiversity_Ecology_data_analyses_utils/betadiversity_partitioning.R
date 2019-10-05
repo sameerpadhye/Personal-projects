@@ -45,4 +45,36 @@ fauna_beta_pairs<-dataset_betadiv%>%
 #For more information on the these indices, readers can refer to 'betapart'library documentation and the references therein
 
 
+#Using 'adespatial' package to calculate B diversity (overall) and separate it into different components (Similarity, Replacement and AbsoluteDifference)    
 
+
+beta_div_data<-beta.div.comp(data_for_analysis[,-4], # dataset (only numeric)
+                             coef = 'J', # the type of coefficient 
+                             quant = FALSE)  # data presence/absence (FALSE); TRUE for quantitative data      
+
+
+#Viewing the specific components of beta diversity
+
+
+# Overall Beta diversity
+
+
+beta_div$D    
+
+
+# Replacement
+
+
+beta_div$repl
+
+
+#Abundance Difference
+
+
+beta_div$rich
+
+
+#Summary of total beta diversity component results
+
+
+beta_div$part
