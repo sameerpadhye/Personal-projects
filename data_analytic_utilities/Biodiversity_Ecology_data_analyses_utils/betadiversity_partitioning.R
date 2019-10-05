@@ -48,6 +48,22 @@ fauna_beta_pairs<-dataset_betadiv%>%
 #Using 'adespatial' package to calculate B diversity (overall) and separate it into different components (Similarity, Replacement and AbsoluteDifference)    
 
 
+if(!require(adespatial))install.packages('adespatial')
+
+
+# Data used for the analysis
+
+
+data_for_analysis<-data.frame(
+    Trait_1=runif(30),
+    Trait_2=sample(1:50,30,replace=T),
+    Trait_3=rnorm(30,mean=15,sd=4),
+    factor_A=as.factor(rep(c("A","B","C"),each=10)))
+    
+
+#Beta diversity analysis
+
+
 beta_div_data<-beta.div.comp(data_for_analysis[,-4], # dataset (only numeric)
                              coef = 'J', # the type of coefficient 
                              quant = FALSE)  # data presence/absence (FALSE); TRUE for quantitative data      
