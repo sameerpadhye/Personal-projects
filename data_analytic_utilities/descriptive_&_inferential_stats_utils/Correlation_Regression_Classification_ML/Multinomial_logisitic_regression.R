@@ -80,3 +80,58 @@ exp(coef(mult_reg_model))
 
 
 fitted(mult_reg_model)
+
+
+## Splitting the data into training and testing datasets for predictive performance. Package 'caret' is used for partitioning the dataset
+
+
+library(caret)
+
+
+#create an index to be used for selecting training and test samples from the dataset
+
+
+sample.index<- mult_log_data$habitat_type%>%
+    caret::createDataPartition(p = 0.8, 
+                               list = FALSE)
+
+
+sample.index
+
+
+# Training data
+
+
+mult_log_data.train  <- mult_log_data[sample.index, ]
+
+
+# Test data
+
+
+mult_log_data.test <- mult_log_data[-sample.index, ]
+
+
+# Using the training dataset for making the model (Code similar to the one used above for the complete data). Same formula 'reg.formula' is used.
+
+
+mult_reg_model.train <- nnet::multinom(reg.formula, 
+                                       data = mult_log_data.train)
+
+
+# Summarize the model
+
+
+summary(mult_reg_model.train)
+
+
+# Predictions using the test data
+
+
+mult_reg_test<-mult_reg_model.train%>%
+    predict(mult_log_data.test)
+
+
+# Accuracy of the model
+
+
+mean(mult_reg_test == mult_log_data.test$habitat_type)
