@@ -133,3 +133,34 @@ ggplot(data_analysis2, aes(x = predictions,
     geom_abline(color = "blue")+
     theme_bw(base_size = 16)+
     ggtitle("Scatterplot")
+
+
+## Using Broom package to view the results of regression analysis
+
+
+if(!require(broom))install.packages('broom')
+
+
+# Using the linear model (lm) object model_cont_reg
+
+
+#1. tidy: To obtain the estimate, std.error and p-value as a tibble
+
+
+model_cont_reg%>%
+    broom::tidy()
+
+
+#2. augment: To obtain predicted values along with the corresponding S.E.
+
+
+model_cont_reg%>%
+    broom::augment()
+
+
+#3. glance: To obtain the Rsquares, adjusted Rsquared and the overall p value, AIC values
+
+
+model_cont_reg%>%
+    broom::glance()
+
