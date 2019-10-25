@@ -74,3 +74,27 @@ anova_perm<-aovp(Trait~Factor, # the formula
 
 
 summary(anova_perm)
+
+
+#Using error blocks in permutation ANOVA's 
+
+
+# Here an additional category with 4 levels is used as a block variable in the analysis
+
+
+data_block_analysis<-read_excel(data_file_path,
+                                sheet=3)
+
+
+# Same library LmPerm is used here
+
+
+# ANOVA test
+
+
+anova_perm_block<-aovp(Trait_2~Factor_level1+Error(Factor_level2), # the formula using the Error term (Factor_level2)
+                       data_block_analysis, # the data
+                       seqs = FALSE) # since the data is unbalanced
+
+
+summary(anova_perm_block)
