@@ -23,6 +23,37 @@ data_analysis<-read_excel(data_path,
 head(data_analysis,5)
 
 
+### Visualizing the abundance data of all species
+
+
+#a. Modifying the original dataset for the plot
+
+
+species_data_heatmap<-data_analysis%>%
+  column_to_rownames('Sites')%>%
+  colSums(.)%>%
+  data.frame(.)%>%
+  rename('Sp_abundance'='.')%>%
+  rownames_to_column(.)%>%
+  arrange(desc(Sp_abundance))%>%
+  mutate_at(vars(1),as.factor)
+
+
+#b. Visualization
+
+
+species_data_heatmap%>%
+  ggplot(aes(rowname,
+             Sp_abundance,
+             size=Sp_abundance))+
+  geom_point()+
+  theme_bw(base_size = 18)+
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1))+
+  xlab("Species")+
+  ylab("Species abundance")
+
+
 #Obtaining the total number of species per site
 
 sp_number<-vegan::specnumber(data_analysis[,-1])
