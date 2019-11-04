@@ -221,44 +221,64 @@ anova.cca(rda(hell_data,
 
 ##RDA plots
 
-# Plot of species vs Environment RDA (rda_env_final)
 
-#base plot with all information
-
-plot(rda_env_final,
-     main="RDA plot")
+#RDA plots for environmental data
 
 
-#Screeplot of RDA axes
-
-screeplot(rda_env_final)
+#1. Plot species
 
 
-#Only sites (points)
+# Blank plot
 
-plot(rda_env_final,
-     display=c("sites"),
-     type = c("points"),
-     main="RDA plot") # type = c("text") can also be used; default is both
 
-#Adding text
+plot(rda_env_final,type='n')
+
+
+# Species names
+
 
 text(rda_env_final,
-     cex = 0.8,
-     col = "forestgreen")
+     display='species',
+     cex=1,
+     col='grey20',
+     scaling=1)
 
 
-#Only species (points)
+#Loadings
+
+
+text(rda_env_final,display='bp',lwd=2,col='blue')
+
+
+#2. Plot sites
+
+
+# Blank plot
 
 plot(rda_env_final,
-     display=c("species"),
-     main="RDA plot")
-
-#Text can be added similarly as above
+     type='n')
 
 
-#Adding Legend
+# Adding site points
 
+
+with(environ_final_data, points(rda_env_final,
+                                display='sites',
+                                cex=1.5,
+                                col='red2',
+                                pch=16,
+                                scaling=2))
+
+
+#Adding the vector loading
+
+
+text(rda_env_final,display='bp',lwd=2,lty=1)
+
+
+
+## Legends and ordihulls can be added as per categorization of data (if there is)
+#E.g.
 # legend("topright", # place to put the legend
 #        legend = mite$some_variable, # the contents of the legend 
 #        col = colors,  # colors for the legend. Please note that the colors given here should be the same as provided in the main text 
