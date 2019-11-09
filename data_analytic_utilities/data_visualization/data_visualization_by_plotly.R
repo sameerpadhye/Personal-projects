@@ -511,3 +511,38 @@ data_for_viz %>%
   layout(title = 'Barchart',
          xaxis = list(title = "Factors"),
          yaxis = list(title = "variable 3"))
+
+
+## Adding animation to the plots
+
+
+# Base plot 
+
+
+animated_plot<-data_for_viz%>%
+  plot_ly(x = ~var_1, 
+          y = ~var_4)%>%
+  add_markers(size = ~var_2, color = ~Factor, 
+              frame = ~ Factor,
+              marker = list(sizemode = "diameter"))%>%
+  layout(title = 'Bubbleplot',
+         xaxis = list(title = "variable 1"),
+         yaxis = list(title = "variable 3")) %>%
+  layout(showlegend = FALSE)
+
+
+# Manipulating the animated component
+
+
+animated_plot %>% 
+  animation_opts(
+    frame = 700,        # frame rate      
+    transition = 400,  # holdup time for each frame
+    easing = "linear"  # how the frame progress
+  ) %>%
+  animation_slider(
+    currentvalue = list(
+      prefix = NULL, 
+      font = list(color = "forestgreen")
+    )
+  ) 
