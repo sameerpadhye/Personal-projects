@@ -546,3 +546,26 @@ animated_plot %>%
       font = list(color = "forestgreen")
     )
   ) 
+
+
+# Adding animated background text and remvoing the slider information
+
+
+data_for_viz%>%
+  plot_ly(x = ~var_1, 
+          y = ~var_4,
+          hoverinfo = 'text',
+          text= ~Factor)%>%
+  add_text(x= 200,
+           y=750,
+           text=~Factor,
+           frame=~Factor,
+           textfont=list(color = toRGB('gray50'),
+                         size=70))%>%
+  add_markers(size = ~var_3, color = ~Factor, 
+              frame = ~ Factor,
+              marker = list(sizemode = "diameter"))%>%
+  layout(title = 'Bubbleplot',
+         xaxis = list(title = "variable 1"),
+         yaxis = list(title = "variable 4")) %>%
+  animation_slider(hide=TRUE)
