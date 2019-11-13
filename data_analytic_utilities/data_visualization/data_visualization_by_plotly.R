@@ -568,4 +568,91 @@ data_for_viz%>%
   layout(title = 'Bubbleplot',
          xaxis = list(title = "variable 1"),
          yaxis = list(title = "variable 4")) %>%
-  animation_slider(hide=TRUE)
+  animation_slider(hide=TRUE)%>%
+  animation_opts(
+    frame = 800,             
+    transition = 400,  
+    easing = "linear"  
+  )%>%
+  hide_legend()
+
+
+
+## Linking two plots. Linking is achieved by using the package crosstalk
+
+
+require(crosstalk)
+
+
+# Creating a shared object using crosstalk package
+
+
+shared_data <- SharedData$new(data_for_viz)
+
+
+#1. Creating a scatterplot of variable 1 and variable 4
+
+
+plot_1 <- shared_data %>%
+  plot_ly(x = ~var_1, 
+          y = ~var_4) %>%
+  add_markers()
+
+#2. Creating a scatterplot of variable 3 and variable 4
+
+
+plot_2 <- shared_data %>%
+  plot_ly(x = ~var_3, 
+          y = ~var_4) %>%
+  add_markers()
+
+
+# Using subplot function to make a plot of the plots above
+
+
+subplot(plot_1, 
+        plot_2, 
+        titleX = TRUE, 
+        shareY = TRUE) %>% 
+  hide_legend()%>% 
+  highlight(on = "plotly_hover")
+
+
+# Using a Factor as a linking key between two different types of plots. shared_data object created using crosstalk package is used here as well with added argument of key
+
+
+shared_data2<-SharedData$new(data_for_viz,
+                             key=~Factor)
+
+
+#1. Creating a barplot of variable 3 counts and different Factors
+
+
+bar_chart<-shared_data2 %>%
+  plot_ly() %>%
+  group_by(Factor)%>%
+  count(var_3) %>%
+  add_bars(x = ~Factor, y = ~n) %>%
+  layout(barmode = "overlay")
+
+
+# Creating a scatter plot having different symbols, colors and sizes for different factors
+
+
+scatter_plot<-shared_data2%>%
+  plot_ly(x = ~var_1, 
+          y = ~var_3, 
+          color = ~Factor, 
+          colors = "Set1",
+          symbol = ~Factor, 
+          symbols = c('circle','x','o'),
+          size = 5)
+
+
+# Linking the two plots
+
+
+subplot(bar_chart, 
+        scatter_plot, 
+        titleX = TRUE) %>% 
+  hide_legend()
