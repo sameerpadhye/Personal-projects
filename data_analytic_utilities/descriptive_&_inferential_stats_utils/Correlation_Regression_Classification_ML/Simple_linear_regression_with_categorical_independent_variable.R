@@ -115,6 +115,17 @@ model_cont_reg <-  lm(formula_regression2,
 summary(model_cont_reg)
 
 
+# Residual plots of the selected model for checking normality
+
+plot(model_cont_reg,
+     main = "Residual plots of the selected model")
+
+qqnorm(resid(model_cont_reg),
+       main = "QQnormplot")
+
+qqline(resid(model_cont_reg))
+
+
 #Adjusted R squared value (strength of the regression model)
 
 summary(model_cont_reg)$adj.r.squared
