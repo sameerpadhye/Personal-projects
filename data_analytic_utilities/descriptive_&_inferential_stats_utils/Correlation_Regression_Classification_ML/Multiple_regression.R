@@ -120,3 +120,37 @@ data_rmsre<-sqrt(mean((data_analysis$relative_error)^2,na.rm = T))
 data_rmse
 
 data_rmsre
+
+
+# Best model selection (using forward selection) 
+
+
+# First a series of models is run, adding one independent variable
+
+#1. with intercept
+
+mod_intercept<-lm(var_1~ 1, 
+                  data= data_analysis)
+
+#2 . With first independent variable
+
+mod_var_2<-lm(var_1~ var_2, 
+              data= data_analysis)
+
+#3 . With two independent variables
+
+mod_var_2_3<-lm(var_1~ var_2 + var_3, 
+                data= data_analysis)
+
+#4 . With all the three independent variables
+
+mod_var_2_3_4<-lm(var_1~ var_2 + var_3 + var_4, 
+                  data= data_analysis)
+
+
+# Running an ANOVA for selecting the best fit model
+
+anova(mod_intercept,
+      mod_var_2,
+      mod_var_2_3,
+      mod_var_2_3_4) 
