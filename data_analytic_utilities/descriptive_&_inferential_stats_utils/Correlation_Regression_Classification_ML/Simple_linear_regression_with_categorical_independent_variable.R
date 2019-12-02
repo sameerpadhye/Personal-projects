@@ -175,3 +175,22 @@ model_cont_reg%>%
 model_cont_reg%>%
     broom::glance()
 
+
+## Using moderndive package to obtain results of linear regression 
+
+require(moderndive)
+
+# Obtaining the estimates with p values and confidence intervals
+
+model_cont_reg%>%
+    get_regression_table(.)
+
+# Obtaining the residuals
+
+model_cont_reg%>%
+    get_regression_points(.)
+
+# Obtaining the estimates with R squared, adjusted R squared and RMSE
+
+model_cont_reg%>%
+    get_regression_summaries(.)
