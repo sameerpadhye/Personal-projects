@@ -1,5 +1,9 @@
 ##Performing PERMANOVA in R
 
+# Libraries used
+
+library(tidyverse)
+
 # PERMANOVA is used to analyse significance between groups based on many dependent variables which might not be normally distributed
 
 # generating a random dataset for analysis
@@ -16,6 +20,8 @@ str(data_for_analysis)
 # Checking multivariate spread of data is necessary before conducting the analysis even though the data are not normal.
 # For conducting that analysis, the dataframe first needs to converted into a distance object.
 # Here, Gower distance index is used but users can select different indices based on their requirement.
+
+require(vegan)
 
 data_beta<-vegdist(subset(data_for_analysis,select=-factor_A), 
                        method = "gower",
@@ -43,3 +49,17 @@ data_permanova<-adonis(subset(data_for_analysis,select=-factor_A) ~ factor_A,
 #PERMANOVA results
 data_permanova$aov.tab
 
+
+#Posthoc test for PERMANOVA using test given by 'pmartinezarbizu')
+
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+
+library(devtools)
+
+library(pairwiseAdonis)
+
+pairwise.adonis(subset(data_for_analysis,select=-factor_A),
+                data_for_analysis$factor_A,
+                sim.function = 'vegdist',
+                sim.method = 'bray',
+                p.adjust.m = "bonferroni")
