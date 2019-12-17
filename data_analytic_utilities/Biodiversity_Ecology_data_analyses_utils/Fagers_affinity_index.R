@@ -62,8 +62,26 @@ Fag_aff_index
 
 ## This can be used to obtain the value for any two species combinations from the dataset
 
+# Function to calculate Fager's index
 
-## A function for the same will be provided soon
+Fager_index<-function(x,                    # dataset (Species occurrence data)
+                    name_1 = colnames(x),  # species 1
+                    name_2=colnames(x)) {  # species 2 
+    
+    joint_occ_1<-x[,name_1]+x[,name_2]
+    
+    joint_occ_2<-ifelse(joint_occ_1>=2,1,0)%>%
+        sum(.)
+    
+    two_J<-2*joint_occ_2
+    
+    Na_Nb<-sum(x[,name_1]) + sum (x[,name_2])
+    
+   Fager_value<-two_J/Na_Nb
+    
+    return(Fager_value)
+    
+}
 
 
 
