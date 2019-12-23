@@ -55,6 +55,31 @@ collinearity_var
 # Since none of the environmental variables are collinear, all of them are used in the regression analysis
 
 
+# Plots to check the distribution of the predictors using the psych package
+
+library(psych)
+
+str(data_for_analysis)
+
+# plot with raw values
+
+psych::multi.hist(subset(data_for_analysis,
+                         select = predictor_2:predictor_7))
+
+# It can be observed that some of the predictors have a skewed distribution and hence need to be transformed (Here 4 and 7 used)
+
+# Log (x+1) transformation
+
+data_for_analysis_trans<-data_for_analysis%>%
+  mutate_at(vars(4,7),
+            log1p)
+
+# Plotting the above data
+
+psych::multi.hist(subset(data_for_analysis_trans,
+                         select = predictor_2:predictor_7))
+
+
 # Plots (boxplot) to check how environmental variables fare in terms of presenceabsence of the species (predictor_1 not used here)
 
 data_for_analysis%>%
