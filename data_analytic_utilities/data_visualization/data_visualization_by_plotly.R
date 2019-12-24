@@ -128,6 +128,23 @@ data_for_viz %>%
            yaxis = list(title = "variable 3"))
 
 
+# Faceted scatterplot 
+
+
+data_for_viz %>%
+  group_by(Factor) %>%
+  do(
+    plot = plot_ly(data = ., 
+                   x=~var_1, 
+                   y=~var_2) %>%
+      add_markers(name = ~Factor,
+                  size=5)
+  ) %>%
+  subplot(nrows = 3, 
+          shareY = TRUE, 
+          shareX = TRUE)
+
+
 # Bubblechart (scatterplot with size based on a specific variable)
 
 #.a with a single color
