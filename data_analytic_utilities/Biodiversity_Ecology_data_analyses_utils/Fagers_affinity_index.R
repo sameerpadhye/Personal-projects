@@ -83,5 +83,53 @@ Fager_index<-function(x,                    # dataset (Species occurrence data)
     
 }
 
+### Obtaining index value for a multi species community 
 
+# This has been done using 'combn' function in r
+
+
+# Exploring how the combinations look like
+
+sp_combo<-combn(colnames(data_analysis),
+                2,simplify = T)
+
+sp_combo
+
+# Writing a function which will utilize these combinations to get the Fager's indices for the dataset
+
+fg_index<-function(x){ # x- species combinations dataset
+     
+    joint_occ_1<-rowSums(data_analysis[,x])
+    
+    joint_occ_2<-ifelse(joint_occ_1>=2,1,0)%>%
+        sum(.)
+    
+    joint_occ_3<-2*joint_occ_2
+    
+    tot_occ_1<-sum(data_analysis[,x])
+    
+    joint_occ_3/tot_occ_1
+    
+}
+
+# Using the function to obtain values of species combinations
+
+Fager_values<-apply(combn(colnames(data_analysis),2),2,fg_index)
+
+View(Fager_values)
+
+# The result obtained is a vector with no species names. Hence the species combinations are added to the result
+
+Fager_data<-cbind(Values=round(Fager_values,4),
+                  t(sp_combo))%>%
+    data.frame(.)%>%
+    dplyr::rename('Species_A'='V2',
+                  'Species_B'='V3')%>%
+    dplyr::mutate_at(vars(contains('Value')),
+                     as.character)%>%
+    dplyr::mutate_if(is.character,
+                     as.numeric)%>%
+    arrange(desc(Values))
+
+head(Fager_data)
 
