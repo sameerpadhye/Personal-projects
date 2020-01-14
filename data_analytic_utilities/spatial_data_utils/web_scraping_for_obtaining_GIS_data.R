@@ -79,9 +79,11 @@ str(clean_table)
 clean_table2<-clean_table%>%
   dplyr::transmute(lat_dec=lat_d + lat_m/60,
             long_dec=lon_d + lon_m/60)%>%
-  dplyr::mutate(states=clean_table$State)
+  dplyr::mutate(state=clean_table$State)
 
 
-head(clean_table2,5)
+View(clean_table2)
 
 
+india_data_type_summ%>%
+  left_join(clean_table2,by=c("state"))
