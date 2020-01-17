@@ -1,4 +1,4 @@
-##Using simple logistic regression 
+##Using logistic regression 
 
 
 # Libraries used
@@ -177,3 +177,11 @@ if(!require(WVPlots))install.packages('WVPlots')
 
 
 GainCurvePlot(data_for_analysis,'predicted_val' ,'Species_A', "logistic_model")
+
+
+## AUC (Area under the curve) value using Metrics package
+
+require(Metrics)
+
+Metrics::auc(actual = data_for_analysis$sp_occ, 
+             predicted = predicted_val)     
