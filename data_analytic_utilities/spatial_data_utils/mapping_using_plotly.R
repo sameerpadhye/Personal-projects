@@ -12,8 +12,6 @@ library(plotly)
 if(!require(sf))install.packages('sf')
 if(!require(rgeos))install.packages('rgeos')
 if(!require(rnaturalearth))install.packages("rnaturalearth")
-if(!require(rnaturalearthhires))install.packages("rnaturalearthhires")
-
 
 # Creating the map file
 
