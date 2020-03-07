@@ -78,6 +78,10 @@ if(!require(rpart.plot))install.packages('rpart.plot')
 rpart.plot(x = model_train, yesno = 2, type = 2, extra = 0)
 
 
+# Plotting the training model to get the optimal point to prune the tree by checking the complexity parameter (for tuning the model)
+
+rpart::plotcp(model_train)
+
 # Generate predicted classes using the training data model (using the test dataset)
 
 prediction_class <- predict(object = model_train,  
