@@ -64,3 +64,15 @@ data_for_viz %>%
     theme_bw(base_size = 18)+
    geom_line(color = "orangered",  # the line plot
              size = 1)
+
+
+# Using violin plot with a boxplot
+
+data_for_viz %>% 
+    ggplot(aes(x = Factor, 
+               y = var_1)) + 
+    geom_violin(alpha = 0.3, 
+                fill = 'orangered') +
+    geom_boxplot(alpha = 0,
+                 width=0.3) +
+    theme_bw(base_size = 18)
