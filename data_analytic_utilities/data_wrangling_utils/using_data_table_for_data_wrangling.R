@@ -7,7 +7,9 @@ library(readxl)
 library(data.table)
 
 #data file (data assumed to be saved in the working directory)
+
 data_file<-"C:/Users/samee/Desktop/Personal-projects/sample_datasets/data_for_analysis_ANOVA.xlsx"
+
 data_file<-paste0(getwd(),"/data_for_analysis_ANOVA.xlsx")
 
 
@@ -53,3 +55,31 @@ data_for_analysis[,.(means=mean(Trait,na.rm=T))]
 # Plotting specifying the columns
 
 data_for_analysis[,.(hist(Trait),plot(Trait))]
+
+
+# Adding new columns
+
+data_for_analysis[,new_col:=log1p(Trait)]
+
+data_for_analysis[,.(Trait,new_col)]
+
+# Deleting colum
+
+data_for_analysis[,new_col:=NULL]
+
+names(data_for_analysis)
+
+# Updating column names
+
+setnames(data_for_analysis,c("Factor","Trait"),c("factors","traits"))
+
+names(data_for_analysis)
+
+# Using groups for aggregations
+
+data_for_analysis[,.(sums=sum(Trait)),
+                  by=Factor]
+
+# Chaining
+
+data_for_analysis[,.(means=mean(Trait)),by=Factor][Factor=="Habitat_4"]
