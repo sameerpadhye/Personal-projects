@@ -57,8 +57,9 @@ pca_analysis_vector<-pca_analysis$rotation
 
 #1.autoplot function from the package ggplot2 used to visualize the result s of the PCA analysis
 
+require(ggfortify)
 
-ggplot2::autoplot(pca_analysis, 
+autoplot(pca_analysis, 
          scale = 0, 
          data = PCA_data, 
          #colour='', can be added as per requirement (any specific factor or category)
@@ -66,7 +67,7 @@ ggplot2::autoplot(pca_analysis,
          label.label = "country",# can be changed as per the analysis requirement
          size = 5, 
          #shape='', shape of points as per the factor/s
-         frame=T,
+         frame=F,
          #frame.colour = '',shape of points as per the factor/s
          loadings = TRUE, 
          loadings.colour = 'black', 
@@ -84,10 +85,10 @@ ggplot2::autoplot(pca_analysis,
 library(factoextra)
 
 
-fviz_eig(pca_c.hislopi)
+fviz_eig(pca_analysis)
 
 
-#Calculating the contribution of individual descriptors to the PCA axes
+pca_analysis#Calculating the contribution of individual descriptors to the PCA axes
 
 
 # (Adopted from: http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/)
@@ -142,3 +143,31 @@ env_var_contri <- t(apply(coord_env_var_cos2,
 head(env_var_contri,5)
 
 
+# Obtaining the proportion of contribution of each descriptor to PCA
+
+PCA_rel_contributn<-sweep(abs(PCA_loadings),
+                          2,
+                          colSums(abs(PCA_loadings)),
+                          "/")%>%
+    data.frame(.)
+
+View(PCA_rel_contributn)
+
+
+# Plotting the contributions on first three axes
+
+plot_data<-PCA_rel_contributn%>%
+    rownames_to_column()%>%
+    dplyr::rename('env_var'='rowname')%>%
+    dplyr::select(env_var,PC1:PC3)%>%
+    tidyr::gather(PCA_axes,values,PC1:PC3)
+
+plot_data%>%
+    ggplot(aes(x=env_var,
+               y=values))+
+    geom_bar(stat = 'identity',
+             position = 'dodge',
+             fill='steelblue')+
+    theme_bw(base_size = 16)+
+    facet_grid(~PCA_axes,scales = 'free')+
+    coord_flip()
