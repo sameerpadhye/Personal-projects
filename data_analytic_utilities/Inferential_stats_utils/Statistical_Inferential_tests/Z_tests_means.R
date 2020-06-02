@@ -6,6 +6,8 @@ library(BSDA)
 
 body_weight<-c(56,76.5,98.2,88,94,68,66,85)
 
+plot(body_weight,cex=.9)
+
 mean_1<-mean(body_weight)
 
 z.test(body_weight,
