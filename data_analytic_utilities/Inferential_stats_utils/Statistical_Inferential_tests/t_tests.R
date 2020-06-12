@@ -72,8 +72,9 @@ wt_data%>%
 
 paired_t_test<-t.test(pre_treatment_wt,
        post_treatment_wt,
-       paired = T)
+       paired = TRUE)
 
+paired_t_test
 
 #Results of the test
 
@@ -115,8 +116,10 @@ attach(site_wt_data)
 
 ind_t_test<-t.test(site_1_wt,
        site_2_wt,
-       var.equal = T) # Homogeneity of variance is assumed true for this test
+       var.equal = TRUE) # Homogeneity of variance is assumed true for this test
 
+
+ind_t_test
 #Results of the test
 
 # t statistic
