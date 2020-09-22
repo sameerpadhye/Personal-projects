@@ -1,0 +1,330 @@
+---
+title: "C.hislopi_random_points"
+author: "Sameer Padhye"
+date: "9/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Generating random points based on grids
+Each locality will be assigned a respective grid after which a set of 200 random spatial points will be generated per grid.Here, grids of 100 sq.km. have been used
+
+Obtaining the grids
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+##Grids (100k sq.km)
+
+grids_100k<-readOGR("C:/Users/samee/Downloads/HWSD_RASTER/world_mgrs/mgrs_region.shp")
+
+proj4string(grids_100k)<- CRS("+proj=longlat +datum=WGS84")
+
+
+#names of the countries and respective grids for convenience
+
+names_grids_w_country<-raster::intersect(c.hislopi_points,grids_100k)
+
+names_grids_w_country@data$GRID1MIL
+
+
+#extracting the grids specific to the localities
+
+grids_for_points<-raster::intersect(grids_100k,c.hislopi_points)
+
+
+### REMOVE Palearctic and Nearctic locality from the data
+
+```
+
+Since 8 grids are involved, a function written to extract random spatial points as per requirement
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#Function
+
+random_sp_pts<-function(x,grid_no,s_no){
+    
+    points=x[grid_no,]%>%
+        spsample(.,n=s_no,"random")%>% 
+        .@coords%>%
+        as.data.frame(.)%>%
+        cbind(grid_no=x$GRID1MIL[[grid_no]]%>%
+                  rep(.,times=s_no))%>%
+        droplevels(.)
+    
+    return(points)
+
+}
+
+#Using the function to get data for all 8 grids
+grid_1<-random_sp_pts(grids_for_points,1,100)
+grid_2<-random_sp_pts(grids_for_points,2,100)
+grid_3<-random_sp_pts(grids_for_points,3,100)
+grid_4<-random_sp_pts(grids_for_points,4,100)
+grid_5<-random_sp_pts(grids_for_points,5,100)
+grid_6<-random_sp_pts(grids_for_points,6,100)
+grid_7<-random_sp_pts(grids_for_points,7,100)
+grid_8<-random_sp_pts(grids_for_points,8,100)
+
+```
+
+Obtaining a complete dataset of all grids
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#combining all the 8 grids data
+
+grid_all_data<-as.data.frame(rbind(grid_1,
+                                   grid_2,
+                                   grid_3,
+                                   grid_4,
+                                   grid_5,
+                                   grid_6,
+                                   grid_7,
+                                   grid_8))
+
+
+# selecting the names of the countries and respective grid code from 'names_grids_w_country'
+
+names_with_codes<-names_grids_w_country@data[,c("Country","GRID1MIL")]
+
+#joining the two datasets 
+
+all_data_randompts<-full_join(grid_all_data,
+                              names_with_codes, 
+                              by = c("grid_no" = "GRID1MIL"))%>%
+    dplyr::rename('Longitude'='x',
+                  "Latitude"='y')%>%
+    drop_na()
+
+head(all_data_randompts,10)
+
+View(all_data_randompts)
+
+```
+
+Obtaining geochem,bioclim,altitude and Ecoregion data for the random points
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+# Obtaining a spatialdataframe object of the GIS data of the random points
+
+c.hislopi_points_random<-SpatialPointsDataFrame(coords = all_data_randompts[,c("Longitude","Latitude")],
+                                         data = all_data_randompts,
+                                         proj4string = CRS("+proj=longlat +datum=WGS84"))
+
+
+#Geochem data
+
+geochem_data_random<-geochem_files%>%
+    purrr::map(raster)%>%
+    purrr::map(.,~raster::extract(.,all_data_randompts[,c("Longitude","Latitude")]))%>%
+    bind_cols(.)%>%
+    purrr::set_names(geochem_colnames)
+
+#Bioclim
+
+random_pts_bioclim<- raster::extract(bioclim,all_data_randompts[,c("Longitude","Latitude")])
+ 
+# Altitude
+
+random_pts_alt<- raster::extract(alt,all_data_randompts[,c("Longitude","Latitude")])
+
+
+# #Ecoregions
+# 
+random_pts_data_eco<-over(c.hislopi_points_random, world_ecoreg)
+
+##Combining all data
+
+all_gis_data<-all_data_randompts%>%
+    cbind(.,random_pts_bioclim)%>%
+    cbind(.,geochem_data_random)%>%
+    as.data.frame(.)%>%
+    dplyr::mutate(grid_no=all_data_randompts$grid_no,
+                  country=all_data_randompts$Country,
+                  altitude=random_pts_alt,
+                  realm=random_pts_data_eco$WWF_REALM2,
+                  ecoregions=random_pts_data_eco$WWF_MHTNAM
+                  )%>%
+    dplyr::select(grid_no,
+                  country,
+                  everything())%>%
+    #dplyr::select_at(vars(starts_with('therm')))
+    na.omit(.)%>%
+    droplevels(.)%>%
+    dplyr::select(-c("therm_cap0_",
+                     "therm_cap10_",
+                     "therm_cap100_",
+                     "therm_cap50_"))
+    
+
+head(all_gis_data,6)
+# #recoding realm category
+# 
+# all_gis_data$realm<-fct_recode(all_gis_data$realm,
+#                                Neotropics="Neotropic")
+
+
+#renaming bioclim names
+
+names(all_gis_data)[6:24]<-c(sprintf("Temp%d",seq=(1:11)),
+                                   sprintf("Prec%d",seq=(1:8)))
+
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#Finding collinearity
+
+chislopi_collinearity_random<-all_gis_data%>%
+    select_if(is.numeric)%>%
+    as.matrix(.)%>%
+    cor(.,method = "spearman")
+
+## Removing highly correlated variables using caret package
+
+require(caret)
+
+#Index for selecting high correlated variables
+
+index_selection_random<-findCorrelation(chislopi_collinearity_random,
+                                 cutoff = 0.65)%>%
+    sort(.)
+
+#Obtaining the variable names after removing the highly correlated variables
+
+final_env_var_chislop_random<-chislopi_collinearity_random[,-c(index_selection_random)]%>%
+    data.frame(.)%>%
+    mutate_if(is.numeric,
+              round, 3)%>%
+    colnames(.)
+
+# The v
+final_env_var_chislop_random
+
+
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+#selecting the variables having pairwise collinearity less than 0.6
+
+pca_c.hislopi_random <- all_gis_data%>%
+    dplyr::select(c(final_env_var_chislop_random))%>%
+    prcomp(.,scale. = T)
+
+
+#extracting the PCA co-ordinates of sites 
+
+pca_coord_chislopi_random<-pca_c.hislopi$x
+
+#extracting PCA vector values of the first two axes
+
+pca.vectors.chislopi_random<-pca_c.hislopi$rotation[,c(1,2)]
+
+#write.csv(pca.vectors.chislopi,'pca_chislopi_vectors.csv')
+
+#plot for PCA
+
+autoplot(pca_c.hislopi_random, 
+         scale = 0, 
+         data = all_gis_data, 
+         colour='realm',
+         label=T,
+         label.label = "Country",
+         size = 5, 
+         shape='realm',
+         frame=T,
+         frame.colour = 'realm',
+         loadings = TRUE, 
+         loadings.colour = 'black', 
+         loadings.label = TRUE, 
+         loadings.label.size = 4, 
+         loadings.label.hjust = 0.5, 
+         loadings.label.vjust = 1.2)+
+    theme_bw(base_size = 18)+
+    scale_color_manual(values=c("orange",
+                                'forestgreen',
+                                "blue",
+                                "grey50",
+                                "black"))+
+    scale_size_manual(values =2)+
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+#b. Scree plot for PCA
+
+library(factoextra)
+
+fviz_eig(pca_c.hislopi)
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+# Since Palearctic and Nearctic realm has only one locality, it has been removed for PERMANOVA)
+
+#Getting the data
+
+chislopi_permanova.data<-C.hislopi_all.data%>%
+    dplyr::select(realm,
+                  c(final_env_var_chislop))%>%
+    #mutate_if(is.numeric,log1p)%>%
+    na.omit(.)
+
+# checking multivariate spread (condition for permanova) for the cladoceran data
+
+#converting it to a distance object
+
+chislopi_beta<-vegdist(subset(chislopi_permanova.data,select=-c(realm)), 
+                       method = "gower",
+                       binary = T,
+                       na.rm = T)
+
+#Beta dispersion test to check homogeneity of spread
+
+chislopi_betadis<-betadisper(chislopi_beta, 
+                             chislopi_permanova.data$realm)
+
+anova(chislopi_betadis)
+
+#permutation test (additional) to test the siginificance
+
+permutest(chislopi_betadis, 
+          pairwise = TRUE)
+
+#PERMANOVA
+
+chislopi_permanova<-adonis(subset(chislopi_permanova.data,select=-c(realm)) ~ realm,
+                           data = chislopi_permanova.data, 
+                           permutations = 5000, 
+                           method = "gower")
+
+#PERMANOVA results
+
+chislopi_permanova$aov.tab
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+```
+
+
+```{r,echo=T,message=FALSE,warning=FALSE}
+
+```
