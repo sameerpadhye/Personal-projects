@@ -1,4 +1,4 @@
-# Few functions related to simple arithmatics and probability
+# Few functions related to simple arithmetic and probability
 
 odd_even<-function (x){
     
