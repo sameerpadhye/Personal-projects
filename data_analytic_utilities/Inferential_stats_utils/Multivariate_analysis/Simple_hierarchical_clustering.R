@@ -1,4 +1,4 @@
-##Basic Heirarchichal clustering 
+##Basic Hierarchical clustering 
 
 # In biodiversity studies, clustering is used to visualize beta diversity patterns between different localities using species (abundance or occurrence data)
 
