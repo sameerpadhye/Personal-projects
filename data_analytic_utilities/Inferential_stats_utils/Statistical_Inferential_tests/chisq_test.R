@@ -39,6 +39,13 @@ balloonplot(t(table_data),
             label = FALSE, 
             show.margins = FALSE)
 
+#For direct visualization of the tables with values
+
+library(gridExtra)
+
+library(grid)
+
+grid.table(table_data)
 
 #Performing the Chisquare test. 
 
