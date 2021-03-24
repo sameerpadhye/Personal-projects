@@ -208,7 +208,11 @@ sp_number_pre%>%
 #Generating species richness estimates and accumulation curves of the pre beautification samples (using vegan)
 
 sp_rich_all_pre<-poolaccum(pashan_pre_2016t,
-                           permutations = 999)
+                           permutations = 999,
+                           smallsample = TRUE)
+
+specpool(pashan_pre_2016t,
+         smallsample = TRUE)
 
 #View the result
 
@@ -260,6 +264,9 @@ sp_number_post%>%
 
 sp_rich_all_post<-poolaccum(pashan_2016t,
                             permutations = 999)
+
+specpool(pashan_2016t,
+         smallsample = TRUE)
 
 #View the result
 
