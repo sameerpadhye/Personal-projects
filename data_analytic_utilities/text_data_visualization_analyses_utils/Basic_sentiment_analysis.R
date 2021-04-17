@@ -58,6 +58,14 @@ data_text_all<-data_text%>%
 
 #Obtaining the data by joining followed by counting the words with respect to different sentiments
 
+# textdata package is installed for the sentiment dictionaries
+
+install.packages('textdata')
+
+library(textdata)
+
+# dataset
+
 word_count_sentiment <- data_text_all %>% 
     #join with the sentiment dictionary Loughran. 
     inner_join(get_sentiments("loughran")) %>%
@@ -80,7 +88,6 @@ word_count_sentiment%>%
     labs(title = "Sentiment Word Counts",
          x = "Words")+
     theme_bw(base_size = 14)
-
 
 #Obtaining corresponding sentiment of each selected word from the text
 
