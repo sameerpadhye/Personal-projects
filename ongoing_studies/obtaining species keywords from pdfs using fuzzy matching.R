@@ -96,8 +96,6 @@ data_path<-"C:/Users/samee/Downloads/trial_pdfs_text_data_shalini"
 pdf_files<-list.files(data_path,pattern = '*.pdf')%>%
     paste0(data_path,"/",.)
 
-pdf_files[1]
-
 # list of reference words
 
 list_of_words<-data.frame(word_list=c("Pandemic", "Urban", "Foraging", "Wild Plants","Lockdown", "Gathering", "Covid-19", "Wild plants", "Food", "Green spaces", "wild edibles", "isolation", "alternative food"))
@@ -126,26 +124,50 @@ crpus_to_tokens<-function(x){
     # try to run the entire process within the function and use map to get the results for each pdf
 }
 
-
 token_text<-purrr::map(pdf_files,crpus_to_tokens)
 
-names(token_text)<-sprintf("text%d",seq=(1:length(token_text)))
+names(token_text)<-gsub("C:/Users/samee/Downloads/trial_pdfs_text_data_shalini/", "",pdf_files)
 
-token_text['text1']
+# for giving universal names with increasing number and same text   
+   
+#sprintf("text%d",seq=(1:length(token_text)))
 
-View(token_text[[3]])
+library(reshape2)
 
-token_text[[3]]%>%
-    mutate(sample=sprintf("text%d",rep=(times=nrow(.))))
+text_pdfs<-melt(token_text)%>%
+  dplyr::rename("words_from_pdfs"="word_list.x",
+                "reference_words"= "word_list.y",
+                "word_count"="value",
+                "name_of_pdf"="L1")%>%
+  select(-variable)%>%
+  arrange(name_of_pdf,word_count)
 
-library(plyr)
+View(text_pdfs)
 
-ldply(token_text, 
-      data.frame)
+write.csv(text_pdfs,'words_from_pdfs.csv')
+getwd()
+# plots
 
-token_text[[3]]%>%
-    dplyr::select(word_list.x,word_counts)
-    
+require(ggplot2)
+
+names(text_pdfs)
+
+text_pdfs%>%
+  arrange(name_of_pdf,word_count)%>%
+  ggplot(aes(x=words_from_pdfs,
+             y=word_count))+
+  geom_bar(stat = 'identity')+
+  facet_wrap(~name_of_pdf,scales = 'free')
+
+
+# For species names comparison: https://ropensci.org/blog/2017/07/27/taxonomy-suite/
+
+# Converting the list to dataframe
+
+# library(plyr)
+# 
+# ldply(token_text, 
+#       data.frame)
 
 
 # trial_1_1<-trial_1%>%
