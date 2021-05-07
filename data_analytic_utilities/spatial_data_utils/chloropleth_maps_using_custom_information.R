@@ -11,22 +11,23 @@ require(rgdal)
 data_path<-"C:/Data/GIS_data/India_states_latest/Admin2.shp"
 
 india_state_map<-readOGR(data_path)
+
 proj4string(india_state_map)<- CRS("+proj=longlat +datum=WGS84")
 
 # Importing the pollution data
 
 data_file_path<-paste0(getwd(),"/India_states_pollution_summary.csv")
 
-state_pollution_data<-read.csv()
+india_pollution_data<-read.csv()
 
 #Exploring the data
 
-head(state_pollution_data,5)
+head(india_pollution_data,5)
 
 #Merging the pollution data with sp object 
 
 india_merged_data<-sp::merge(india_state_map,
-                             state_pollution_data, 
+                             india_pollution_data, 
                              by.x="ST_NM",
                              by.y="state")
 
@@ -36,7 +37,7 @@ head(india_merged_data@data,5)
 
 # Defining the label which can be seen on the map
 
-state_popup <- paste(
+popup_data <- paste(
     "State: ", india_merged_data@data$ST_NM,"<br/>", 
     "mean_NO2: ", india_merged_data@data$so2)%>%
     lapply(htmltools::HTML)
@@ -48,7 +49,7 @@ require (leaflet)
 leaflet(data=india_merged_data) %>% 
     addTiles()  %>% 
     addPolygons( 
-        label = ~state_popup,
+        label = ~popup_data,
         fillColor = ~colorBin("YlOrRd",so2)(so2),
         stroke=T,
         color = "black",
@@ -59,3 +60,20 @@ leaflet(data=india_merged_data) %>%
               opacity=0.8, 
               title = "SO2 values", 
               position = "bottomleft" )
+
+# Chloropleth maps using tmap package
+
+require(tmap)
+
+# Chloropleth maps using tmaps
+
+library(tmap)
+
+library(RColorBrewer)
+
+tm_shape(india_merged_data) + 
+    tm_polygons(col='no2', 
+                title = "Average NO2 value categories", 
+                palette = "Set1") + 
+    tm_layout(legend.position= c("right", "bottom"), 
+              main.title = "Average NO2 values")
